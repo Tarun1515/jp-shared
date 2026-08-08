@@ -150,6 +150,11 @@ $space-12: 3rem;      // 48px
 $space-16: 4rem;      // 64px
 $space-20: 5rem;      // 80px
 
+/// Section rhythm on the public marketing site. The application has nothing
+/// this loose — its densest screen is a 50-row table — but the token lives
+/// here rather than in jp-public so there is one place tokens are added.
+$space-24: 6rem;      // 96px
+
 // -----------------------------------------------------------------------------
 // TYPOGRAPHY
 //
@@ -422,6 +427,12 @@ $easing-standard:   cubic-bezier(0.22, 0.61, 0.36, 1);   // ease-out
     --jp-space-12: #{$space-12};
     --jp-space-16: #{$space-16};
     --jp-space-20: #{$space-20};
+    --jp-space-24: #{$space-24};
+
+    // The public site's one full-bleed dark area. Ink rather than the header
+    // slate: the header is chrome the reader looks past, the footer is the
+    // page ending and should read as the deepest thing on it.
+    --jp-footer-bg: #{$neutral-900};
 
     // typography
     --jp-font-family: #{$font-family-base};

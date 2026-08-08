@@ -309,3 +309,16 @@
     animation-delay: calc(var(--jp-enter-index, 0) * #{$stagger});
   }
 }
+
+/// Vertical rhythm between full-width marketing sections.
+///
+/// Used only by jp-public — the application has no full-bleed sections to
+/// space out. It lives here rather than in jp-public so that the mixin set,
+/// like the token set, has exactly one home.
+@mixin section-spacing {
+  padding-block: v.$space-16;
+
+  @include up(md) {
+    padding-block: v.$space-24;
+  }
+}

@@ -4,19 +4,77 @@
   "cli": { "packageManager": "npm", "analytics": false },
   "projects": {
     "jp-shared": {
-      "projectType": "library",
+      "projectType": "application",
       "root": "",
       "sourceRoot": "src",
       "prefix": "ui",
       "architect": {
         "build": {
-          "builder": "@angular/build:ng-packagr",
-          "options": { "project": "ng-package.json" },
+          "builder": "@angular-architects/native-federation:build",
+          "options": {
+            "target": "jp-shared:esbuild"
+          },
           "configurations": {
-            "production": { "tsConfig": "tsconfig.lib.prod.json" },
-            "development": { "tsConfig": "tsconfig.lib.json" }
+            "production": { "target": "jp-shared:esbuild:production" },
+            "development": { "target": "jp-shared:esbuild:development" }
           },
           "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-architects/native-federation:build",
+          "options": {
+            "target": "jp-shared:serve-original",
+            "rebuildDelay": 0,
+            "dev": true,
+            "port": 4999
+          },
+          "configurations": {
+            "production": { "target": "jp-shared:serve-original:production" },
+            "development": { "target": "jp-shared:serve-original:development" }
+          },
+          "defaultConfiguration": "development"
+        },
+        "esbuild": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/jp-shared",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": ["es-module-shims"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "styles": ["src/styles.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "10kB" }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve-original": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4999,
+            "host": "localhost"
+          },
+          "configurations": {
+            "production": { "buildTarget": "jp-shared:esbuild:production" },
+            "development": { "buildTarget": "jp-shared:esbuild:development" }
+          },
+          "defaultConfiguration": "development"
         }
       }
     }

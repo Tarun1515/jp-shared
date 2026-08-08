@@ -1,0 +1,13 @@
+// =============================================================================
+// GLOBAL STYLESHEET — jp-shared's own probe page only.
+//
+// ⚠️ This does NOT reach the four apps. Module Federation shares JavaScript;
+// SCSS is shared at BUILD time instead, through each app's angular.json:
+//
+//     "stylePreprocessorOptions": { "includePaths": ["../jp-shared/src/styles"] }
+//
+// The repos sit as siblings on disk, so an app's components keep writing
+// `@use 'variables' as v;` and resolve to src/styles here. See PROJECT_MEMORY.
+// =============================================================================
+
+@use 'styles/theme';

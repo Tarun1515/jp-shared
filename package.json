@@ -1,51 +1,34 @@
 {
-  "name": "@tarun1515/jp-shared",
+  "name": "jp-shared",
   "version": "1.0.0",
   "description": "Design system, session handling and HTTP plumbing shared by the four Staffroom India apps.",
   "scripts": {
-    "build": "ng build jp-shared",
-    "build:watch": "ng build jp-shared --watch --configuration development",
-    "version:bump": "node scripts/bump-version.mjs",
-    "link": "npm run build && cd dist/jp-shared && npm link",
-    "prepack": "npm run build",
-    "publish": "npm run build && cd dist/jp-shared && npm publish"
-  },
-  "peerDependencies": {
-    "@angular/common": "^22.1.0",
-    "@angular/core": "^22.1.0",
-    "@angular/forms": "^22.1.0",
-    "@angular/router": "^22.1.0",
-    "rxjs": "~7.8.0"
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:dev": "ng build --configuration development"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
-  },
-  "devDependencies": {
-    "@angular/build": "^22.1.3",
-    "@angular/cli": "^22.1.3",
+    "tslib": "^2.3.0",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
-    "@angular/compiler-cli": "^22.1.0",
     "@angular/core": "^22.1.0",
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
-    "ng-packagr": "^22.1.0",
-    "rxjs": "~7.8.0",
+    "rxjs": "~7.8.0"
+  },
+  "devDependencies": {
+    "@angular-architects/native-federation": "^22.1.0",
+    "@angular/build": "^22.1.3",
+    "@angular/cli": "^22.1.3",
+    "@angular/compiler-cli": "^22.1.0",
+    "es-module-shims": "^2.8.4",
     "typescript": "~6.0.2"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tarun1515/jp-shared.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
-  "files": [
-    "fesm2022",
-    "types",
-    "styles",
-    "README.md",
-    "CHANGELOG.md"
-  ]
+  "private": true
 }
