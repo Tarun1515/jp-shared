@@ -1,0 +1,34 @@
+<div class="field">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  <input
+    class="form-control datepicker__input"
+    [id]="controlId"
+    [type]="withTime() ? 'datetime-local' : 'date'"
+    [value]="value() ?? ''"
+    [disabled]="isDisabled()"
+    [readonly]="readonly()"
+    [required]="required()"
+    [attr.min]="min()"
+    [attr.max]="max()"
+    [attr.aria-invalid]="hasError()"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput($event)"
+    (blur)="markTouched()"
+  />
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>

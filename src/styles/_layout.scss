@@ -1,0 +1,359 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// LAYOUT — page scaffolding, shell chrome, and the content grid.
+// =============================================================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--jp-bg);
+}
+
+// Media never overflows its column.
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+// Form controls do not inherit the page font by default.
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+
+// -----------------------------------------------------------------------------
+// APP SHELL
+// -----------------------------------------------------------------------------
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+// The board runs across the top and down the left, exactly as it does in a
+// classroom: dark, matte, and the fixed thing everything else is arranged
+// against. The paper (content) sits to the right of it.
+.shell__header {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  height: var(--jp-header-height);
+  padding: 0 v.$space-4;
+  background: var(--jp-surface-dark);
+  color: var(--jp-text-inverse);
+  position: sticky;
+  top: 0;
+  z-index: var(--jp-z-header);
+}
+
+.shell__body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.shell__sidebar {
+  width: var(--jp-sidebar-width);
+  flex-shrink: 0;
+  padding: v.$space-4 v.$space-3 v.$space-8;
+  background: var(--jp-surface-dark);
+  color: var(--jp-text-on-dark);
+  overflow-y: auto;
+
+  @include m.custom-scrollbar;
+  @include m.flex-column(2px);
+
+  // Off-canvas below md, toggled by the header button.
+  @include m.down(md) {
+    position: fixed;
+    top: var(--jp-header-height);
+    bottom: 0;
+    left: 0;
+    z-index: var(--jp-z-drawer);
+    transform: translateX(-100%);
+    transition: transform var(--jp-transition-base) var(--jp-easing);
+    box-shadow: var(--jp-shadow-lg);
+
+    &--open { transform: translateX(0); }
+
+    @include m.reduced-motion { transition: none; }
+  }
+}
+
+/// Dims the page behind the open mobile drawer.
+.shell__scrim {
+  @include m.down(md) {
+    position: fixed;
+    inset: var(--jp-header-height) 0 0;
+    z-index: calc(var(--jp-z-drawer) - 1);
+    background: rgb(14 28 24 / 45%);
+    border: 0;
+    padding: 0;
+  }
+}
+
+/// Wordmark in the shell header, on the board.
+.shell__brand {
+  color: var(--jp-text-inverse);
+}
+
+.shell__user {
+  color: var(--jp-primary-200);
+}
+
+.shell__main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--jp-content-padding);
+  overflow-x: hidden;
+
+  @include m.down(sm) { padding: v.$space-4; }
+}
+
+
+// -----------------------------------------------------------------------------
+// SIDEBAR NAVIGATION
+// -----------------------------------------------------------------------------
+
+// Chalk on the board. The active item is marked with the register's margin
+// rule rather than a filled pill — the same 3px vocabulary as a table row, so
+// "where I am" reads the same way everywhere in the product.
+.nav-link {
+  @include m.focus-ring;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  min-height: 2.25rem;
+  padding: v.$space-2 v.$space-3;
+  padding-left: v.$space-4;
+  border-radius: var(--jp-radius-sm);
+  color: var(--jp-text-on-dark);
+  text-decoration: none;
+  font-size: var(--jp-font-size-sm);
+  transition:
+    background-color var(--jp-transition-fast) var(--jp-easing),
+    color var(--jp-transition-fast) var(--jp-easing);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    width: var(--jp-margin-rule-width);
+    background: transparent;
+    border-radius: 1px;
+    transition: background-color var(--jp-transition-fast) var(--jp-easing);
+  }
+
+  &:hover {
+    background: rgb(255 255 255 / 7%);
+    color: var(--jp-text-inverse);
+    text-decoration: none;
+  }
+
+  &:focus-visible { outline-color: var(--jp-primary-200); }
+
+  &--active {
+    background: rgb(255 255 255 / 10%);
+    color: var(--jp-text-inverse);
+    font-weight: var(--jp-font-weight-semibold);
+
+    &::before { background: var(--jp-warning); }
+  }
+
+  &__badge { margin-left: auto; }
+
+  @include m.reduced-motion {
+    transition: none;
+
+    &::before { transition: none; }
+  }
+}
+
+// Second level under a group heading.
+.nav-link--child {
+  padding-left: v.$space-6;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-primary-300);
+
+  &::before { left: v.$space-3; }
+}
+
+// A group heading. Not a link — it goes nowhere.
+.nav-group,
+.nav-section {
+  display: block;
+  margin-top: v.$space-4;
+  padding: 0 v.$space-3 v.$space-1 v.$space-4;
+  font-family: var(--jp-font-family-mono);
+  font-size: var(--jp-font-size-xs);
+  font-weight: var(--jp-font-weight-medium);
+  letter-spacing: var(--jp-tracking-wide);
+  text-transform: uppercase;
+  color: var(--jp-primary-300);
+}
+
+
+// -----------------------------------------------------------------------------
+// PAGE
+// -----------------------------------------------------------------------------
+
+.container {
+  width: 100%;
+  max-width: var(--jp-container-max-width);
+  margin-inline: auto;
+}
+
+.page {
+  @include m.flex-column(v.$space-5);
+}
+
+.page__header {
+  @include m.flex-between(flex-start, v.$space-4);
+
+  flex-wrap: wrap;
+}
+
+.page__heading { @include m.flex-column(v.$space-1); }
+
+.page__title {
+  @include m.display-type(var(--jp-font-size-2xl), 600);
+
+  margin: 0;
+}
+
+.page__description {
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+  margin: 0;
+  max-width: 62ch;
+}
+
+/// The rule under a page header. The register's top line: everything below it
+/// is an entry.
+.page__rule {
+  border: 0;
+  border-top: var(--jp-rule-width) solid var(--jp-rule);
+  margin: 0;
+}
+
+.page__actions {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+
+  @include m.down(sm) {
+    width: 100%;
+
+    .btn { flex: 1; }
+  }
+}
+
+/// Filter strip. Sits directly above the ruled area with no gap, so the
+/// controls read as the head of the sheet rather than a floating panel.
+.page__toolbar {
+  @include m.flex-between(center, v.$space-3);
+
+  flex-wrap: wrap;
+  padding: v.$space-3 v.$space-4;
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+}
+
+
+// -----------------------------------------------------------------------------
+// CENTRED PAGES — auth, account status, errors
+// -----------------------------------------------------------------------------
+
+.centred-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: v.$space-6 v.$space-4;
+}
+
+.centred-page__card {
+  width: 100%;
+  max-width: 26rem;
+  padding: v.$space-8;
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+  text-align: center;
+}
+
+
+// -----------------------------------------------------------------------------
+// THE ENTRANCE
+//
+// One orchestrated sequence per page, on the top-level regions only. 6px and
+// 190ms: enough to read as arrival, not enough to be a performance. Scattering
+// effects over individual elements is what makes a product feel restless.
+// -----------------------------------------------------------------------------
+
+@keyframes jp-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.enter {
+  @include m.enter-sequence;
+}
+
+
+// -----------------------------------------------------------------------------
+// GRID HELPERS
+// -----------------------------------------------------------------------------
+
+.grid { display: grid; gap: v.$space-4; }
+
+.grid--2 {
+  grid-template-columns: 1fr;
+
+  @include m.up(md) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.grid--3 {
+  grid-template-columns: 1fr;
+
+  @include m.up(sm) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @include m.up(lg) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.grid--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @include m.up(lg) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

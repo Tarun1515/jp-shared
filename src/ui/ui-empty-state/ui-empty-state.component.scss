@@ -1,0 +1,42 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:host {
+  display: block;
+}
+
+.empty {
+  @include m.flex-column(v.$space-2);
+
+  align-items: center;
+  padding: v.$space-12 v.$space-6;
+  text-align: center;
+
+  &--compact {
+    padding: v.$space-6 v.$space-4;
+  }
+
+  &__icon {
+    font-size: v.$font-size-3xl;
+    line-height: 1;
+    opacity: 0.55;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--jp-font-size-lg);
+    font-weight: var(--jp-font-weight-semibold);
+    color: var(--jp-text);
+  }
+
+  &__message {
+    margin: 0;
+    max-width: 28rem;
+    color: var(--jp-text-muted);
+    line-height: var(--jp-line-height-relaxed);
+  }
+
+  &__action {
+    margin-top: v.$space-2;
+  }
+}

@@ -1,0 +1,30 @@
+<!--
+  The cells are aria-hidden and the meaning lives on the host label. A screen
+  reader reading out seven <span>s would be noise; "Shortlisted, stage 3 of 7"
+  is the sentence a sighted user gets from the shape.
+-->
+<span [class]="classes()" role="img" [attr.aria-label]="label()">
+  <span class="roll__cells" aria-hidden="true">
+    @for (cell of cells(); track cell.label) {
+      <span class="roll__cell" [class]="'roll__cell--' + cell.state"></span>
+    }
+  </span>
+
+  @if (size() === 'lg') {
+    <ol class="roll__legend" aria-hidden="true">
+      @for (cell of cells(); track cell.label) {
+        <li class="roll__legend-item" [class]="'roll__legend-item--' + cell.state">
+          {{ cell.label }}
+        </li>
+      }
+    </ol>
+  } @else {
+    @if (showStage() && currentStage(); as stage) {
+      <span class="roll__stage" aria-hidden="true">{{ stage.label }}</span>
+    }
+
+    @if (showCount()) {
+      <span class="roll__count" aria-hidden="true">{{ reached() }}/{{ total() }}</span>
+    }
+  }
+</span>

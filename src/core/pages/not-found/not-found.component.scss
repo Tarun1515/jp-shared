@@ -1,0 +1,22 @@
+@use 'variables' as v;
+
+.message {
+  &__code {
+    margin: 0 0 v.$space-2;
+    font-size: var(--jp-font-size-3xl);
+    font-weight: var(--jp-font-weight-bold);
+    color: var(--jp-text-subtle);
+    letter-spacing: 0.05em;
+  }
+
+  &__title {
+    margin: 0 0 v.$space-3;
+    font-size: var(--jp-font-size-xl);
+  }
+
+  &__text {
+    margin: 0 0 v.$space-6;
+    color: var(--jp-text-muted);
+    line-height: var(--jp-line-height-relaxed);
+  }
+}

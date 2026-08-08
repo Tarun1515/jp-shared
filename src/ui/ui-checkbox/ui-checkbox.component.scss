@@ -1,0 +1,12 @@
+@use 'variables' as v;
+
+// .form-check and .form-check__input live in styles/_forms.scss.
+:host {
+  display: block;
+}
+
+// Indent the messages so they line up with the label text, not the box.
+.field__helper,
+.field__error {
+  padding-left: calc(1.125rem + #{v.$space-2});
+}

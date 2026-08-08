@@ -1,0 +1,7 @@
+@use 'variables' as v;
+
+// .page__header, .page__title and .page__actions live in styles/_layout.scss.
+:host {
+  display: block;
+  margin-bottom: v.$space-5;
+}

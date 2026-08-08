@@ -1,0 +1,490 @@
+// =============================================================================
+// DESIGN TOKENS
+//
+// The single source of truth for every colour, space, size, radius, shadow,
+// z-index and breakpoint in the portal.
+//
+// No component stylesheet may contain a raw hex colour, a raw px value that
+// belongs to a scale, or a hardcoded media query width. If a value is missing
+// here, add it here — do not inline it.
+//
+// Tokens are published twice, on purpose:
+//
+//   SCSS variables ($space-4)      compile-time. Use in mixins, in maths, and
+//                                  anywhere a value must be known to Sass.
+//   CSS custom properties (--jp-*) runtime. Use in component styles, so a value
+//                                  can be overridden per scope and — later —
+//                                  themed without a rebuild.
+//
+// Prefer the CSS custom property in component styles. Reach for the SCSS
+// variable when Sass has to do arithmetic with it.
+//
+// This file emits NO CSS on its own. `@use` it freely from any component.
+// The :root block is emitted once, by _theme.scss calling `root-variables()`.
+//
+//
+// =============================================================================
+// DESIGN DIRECTION — "THE REGISTER"          (docs/PROJECT_MEMORY.md § 2.38)
+// =============================================================================
+//
+// Mined from the school's own materials rather than from the job-board
+// category: the bound attendance register, the mark sheet, the blackboard, and
+// the two inks a classroom runs on — the student's blue-black and the
+// teacher's correction red.
+//
+// THREE RULES HOLD THE WHOLE THING UP:
+//
+//   1. THE NEUTRALS CARRY THE IDENTITY, NOT AN ACCENT.
+//      There is no true grey and no pure black anywhere in this product. Every
+//      border, every muted label, every sunken surface is a desaturated
+//      blackboard green. At table density you are looking at ~95% neutrals and
+//      ~5% accent, so branding the accent brands almost nothing. This is the
+//      deliberate risk: it reads as a considered material rather than as a
+//      default palette with a logo colour dropped in.
+//
+//   2. RULES, NOT ELEVATION.
+//      The page is drawn with horizontal rules and borders on a fixed rhythm,
+//      the way a ledger is. Shadows exist ONLY for things that genuinely float
+//      above the page — modal, dropdown, toast, mobile drawer. Cards do not
+//      lift. A 50-row table tracked by ruling beats one tracked by zebra
+//      striping, and it costs no vertical space.
+//
+//   3. RED IS RATIONED.
+//      Marking red appears only where something needs the user's pen:
+//      rejected, resubmit required, overdue, a field in error. It is never
+//      decorative and never a brand flourish. When this product shows red,
+//      it means the same thing it means on a marked paper.
+//
+// Everything an eye lands on repeatedly — row height, rule weight, the left
+// margin gutter — is a token below. Change it here and the whole register
+// re-rules itself.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// COLOUR — slate (blackboard green)
+//
+// The brand AND the neutral ramp, which are the same ramp on purpose (rule 1).
+// Hue sits around 165°, desaturating as it lightens so the pale steps read as
+// "a grey with something in it" rather than as green.
+//
+// Kept under the `$primary-*` and `$neutral-*` names the components already
+// use. Retuning in place means no component needed touching to inherit the new
+// direction — which was the point of having tokens at all.
+// -----------------------------------------------------------------------------
+
+$primary-50:  #eef3f1;
+$primary-100: #d8e5e0;
+$primary-200: #b6c8c2;
+$primary-300: #8aa79e;
+$primary-400: #4a7266;
+$primary-500: #35685b;
+$primary-600: #234a40;   // base — buttons, links
+$primary-700: #1c3d35;
+$primary-800: #17332c;   // header, sidebar, table head
+$primary-900: #10241f;
+
+$neutral-0:   #ffffff;
+$neutral-50:  #f8faf9;
+$neutral-100: #f3f6f4;   // chalk — the page ground
+$neutral-200: #e4ebe8;   // the ledger rule
+$neutral-300: #cddad5;
+$neutral-400: #7e908a;
+$neutral-500: #52685f;   // muted text — 5.99:1 on white, 5.51:1 on chalk
+$neutral-600: #3f6459;
+$neutral-700: #2b4b42;
+$neutral-800: #1a3129;
+$neutral-900: #0e1c18;   // ink — body text, 17.5:1 on white
+
+// -----------------------------------------------------------------------------
+// COLOUR — semantic
+//
+// Every value here is measured against its own background, not assumed.
+// The `-text` step is the one safe to set type in; the base step is for fills,
+// rules and indicators where 3:1 against the adjacent surface is the bar.
+// -----------------------------------------------------------------------------
+
+// Complete / hired. The institution's own colour means "in", which is the
+// reading a school already has for it.
+$success:       #2f6b4f;
+$success-hover: #24543e;
+$success-soft:  #e2efe8;
+$success-text:  #1c4432;
+
+// Turmeric. Waiting is neither a failure nor a result, and the generic amber
+// says "warning" too loudly for a school that is simply in the queue.
+$warning:       #c08a2a;
+$warning-hover: #9c6512;
+$warning-soft:  #f8efdc;
+$warning-text:  #8f5e0f;   // 5.56:1 on white
+
+// Marking red — the correction pen. Rationed (rule 3).
+$danger:        #a9302a;   // 6.68:1 on white, 6.14:1 on chalk
+$danger-hover:  #8c2622;
+$danger-soft:   #f8e7e5;
+$danger-text:   #7e211d;
+
+// Ink annotation — informational, never celebratory.
+$info:          #2a5d78;
+$info-hover:    #1f4759;
+$info-soft:     #e3eef3;
+$info-text:     #1b3d4d;
+
+// -----------------------------------------------------------------------------
+// SPACING
+//
+// 4px base. Named by step, not by pixels, so the scale can be retuned without
+// every name becoming a lie.
+// -----------------------------------------------------------------------------
+
+$space-0:  0;
+$space-1:  0.25rem;   //  4px
+$space-2:  0.5rem;    //  8px
+$space-3:  0.75rem;   // 12px
+$space-4:  1rem;      // 16px
+$space-5:  1.25rem;   // 20px
+$space-6:  1.5rem;    // 24px
+$space-8:  2rem;      // 32px
+$space-10: 2.5rem;    // 40px
+$space-12: 3rem;      // 48px
+$space-16: 4rem;      // 64px
+$space-20: 5rem;      // 80px
+
+// -----------------------------------------------------------------------------
+// TYPOGRAPHY
+//
+// Three faces, each with one job. Loaded in index.html.
+//
+//   Bricolage Grotesque   DISPLAY. Compressed, slightly irregular terminals —
+//                         painted institutional signage rather than literary
+//                         print. Used in exactly three places: the wordmark,
+//                         page titles, and large figures. Restraint is what
+//                         keeps it characterful instead of shouty.
+//
+//   Public Sans           BODY. A civic grotesque with a large x-height and
+//                         open apertures. Chosen for where the reading
+//                         actually happens: 13px, in a table, in hour four.
+//
+//   IBM Plex Mono         UTILITY. Ids, dates, PRT/TGT/PGT codes, the numerals
+//                         in the register margin. Its stamped, typewritten
+//                         quality is the register's own voice, and its figures
+//                         are tabular so columns of numbers line up.
+//
+// System fallbacks are listed for every face: a webfont that has not arrived
+// yet must not collapse the layout.
+// -----------------------------------------------------------------------------
+
+$font-family-base:    'Public Sans', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+$font-family-display: 'Bricolage Grotesque', 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+$font-family-mono:    'IBM Plex Mono', 'Cascadia Mono', Consolas, 'SF Mono', Menlo, monospace;
+
+$font-size-xs:   0.75rem;    // 12px — margin numerals, captions, helper text
+$font-size-sm:   0.8125rem;  // 13px — table body, labels, badges
+$font-size-base: 0.9375rem;  // 15px — body
+$font-size-md:   1rem;       // 16px — inputs (below this iOS zooms on focus)
+$font-size-lg:   1.125rem;   // 18px — card titles
+$font-size-xl:   1.375rem;   // 22px — section titles
+$font-size-2xl:  1.75rem;    // 28px — page titles (display face)
+$font-size-3xl:  2.5rem;     // 40px — auth headline, dashboard figures (display)
+$font-size-4xl:  3.25rem;    // 52px — the one headline moment (display)
+
+$font-weight-normal:   400;
+$font-weight-medium:   500;
+$font-weight-semibold: 600;
+$font-weight-bold:     700;
+
+$line-height-tight:   1.12;   // display — tight enough to read as a block
+$line-height-snug:    1.35;
+$line-height-normal:  1.5;
+$line-height-relaxed: 1.6;
+
+// Display type needs negative tracking at size; small caps-y labels need
+// positive. Both are tokens so no component invents its own.
+$tracking-display: -0.02em;
+$tracking-tight:   -0.01em;
+$tracking-normal:  0;
+$tracking-wide:    0.06em;   // the uppercase micro-label used on rules
+
+// -----------------------------------------------------------------------------
+// THE REGISTER
+//
+// The ruling system, which is the layout primitive the whole product is built
+// on. These are the numbers that decide whether a dense screen reads as a page
+// or as a pile.
+// -----------------------------------------------------------------------------
+
+/// Height of one ruled row. Also the minimum touch target, so the same rhythm
+/// serves a mouse at 1440px and a thumb at 375px.
+$rule-row-height:        2.75rem;   // 44px
+$rule-row-height-compact: 2.25rem;  // 36px — opt-in, for review-heavy tables
+
+/// The ledger rule itself. 1px and pale: it must organise the eye without
+/// competing with the content sitting on it.
+$rule-width:  1px;
+
+/// The margin gutter down the left of every row and card. Carries state by
+/// colour — ALWAYS alongside a text label, never as the only signal.
+$margin-rule-width: 3px;
+
+/// Distance from the margin rule to the first character, matching the way a
+/// register leaves room for the marker's pen.
+$margin-gutter: $space-4;
+
+// -----------------------------------------------------------------------------
+// RADII
+//
+// Small and consistent. Zero radius would be the broadsheet cliché and reads
+// as unfinished on a phone; 12px everywhere reads as a consumer app. 4px is
+// the radius of a rubber stamp's corner.
+// -----------------------------------------------------------------------------
+
+$radius-none: 0;
+$radius-sm:   2px;
+$radius-md:   4px;
+$radius-lg:   6px;
+$radius-xl:   10px;
+$radius-2xl:  14px;
+$radius-full: 9999px;
+
+// -----------------------------------------------------------------------------
+// SHADOWS
+//
+// Deliberately few and deliberately weak (rule 2). Nothing on the page floats
+// except things that genuinely overlay it. If you are reaching for a shadow on
+// a card, you want a rule.
+// -----------------------------------------------------------------------------
+
+$shadow-xs: 0 1px 1px rgb(14 28 24 / 4%);
+$shadow-sm: 0 1px 2px rgb(14 28 24 / 6%);
+$shadow-md: 0 4px 10px rgb(14 28 24 / 8%);
+$shadow-lg: 0 12px 28px rgb(14 28 24 / 12%);
+$shadow-xl: 0 24px 56px rgb(14 28 24 / 16%);
+
+$focus-ring: 0 0 0 3px rgb(35 74 64 / 28%);
+
+// -----------------------------------------------------------------------------
+// Z-INDEX
+//
+// Sparse deliberately, so something can always be slotted between two layers
+// without renumbering everything.
+// -----------------------------------------------------------------------------
+
+$z-base:     1;
+$z-dropdown: 100;
+$z-sticky:   200;
+$z-header:   300;
+$z-drawer:   800;
+$z-overlay:  900;
+$z-modal:    1000;
+$z-toast:    1100;
+$z-tooltip:  1200;
+
+// -----------------------------------------------------------------------------
+// BREAKPOINTS
+//
+// Consume through the mixins in _mixins.scss (`@include up(md)`), never by
+// writing a raw media query in a component.
+// -----------------------------------------------------------------------------
+
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+$breakpoints: (
+  'sm':  $breakpoint-sm,
+  'md':  $breakpoint-md,
+  'lg':  $breakpoint-lg,
+  'xl':  $breakpoint-xl,
+  '2xl': $breakpoint-2xl,
+);
+
+// -----------------------------------------------------------------------------
+// LAYOUT
+// -----------------------------------------------------------------------------
+
+$header-height:         3.5rem;
+$sidebar-width:         15.5rem;
+$sidebar-width-collapsed: 4rem;
+$container-max-width:   88rem;
+$content-padding:       $space-6;
+
+/// Auth card. Wide enough for a two-column name row on a laptop, narrow enough
+/// that a line of body copy never exceeds a comfortable measure.
+$auth-card-width:       27rem;
+
+// -----------------------------------------------------------------------------
+// MOTION
+//
+// Functional only. 150–200ms ease-out on hover, focus and route change; one
+// orchestrated entrance per page rather than effects scattered over it.
+// Nothing overshoots, nothing bounces.
+// -----------------------------------------------------------------------------
+
+$transition-fast:   150ms;
+$transition-base:   190ms;
+$transition-slow:   260ms;
+$easing-standard:   cubic-bezier(0.22, 0.61, 0.36, 1);   // ease-out
+
+
+// =============================================================================
+// RUNTIME TOKENS
+//
+// Emits every token above as a CSS custom property. Called exactly once, from
+// _theme.scss. Keeping it in a mixin is what lets components `@use` this file
+// for its SCSS variables without each of them duplicating the whole :root
+// block into their own stylesheet.
+// =============================================================================
+
+@mixin root-variables {
+  :root {
+    // colour — brand (slate / blackboard green)
+    --jp-primary-50:  #{$primary-50};
+    --jp-primary-100: #{$primary-100};
+    --jp-primary-200: #{$primary-200};
+    --jp-primary-300: #{$primary-300};
+    --jp-primary-400: #{$primary-400};
+    --jp-primary-500: #{$primary-500};
+    --jp-primary:     #{$primary-600};
+    --jp-primary-600: #{$primary-600};
+    --jp-primary-700: #{$primary-700};
+    --jp-primary-800: #{$primary-800};
+    --jp-primary-900: #{$primary-900};
+    --jp-primary-hover: #{$primary-700};
+    --jp-primary-soft:  #{$primary-50};
+
+    // colour — neutral (the same ramp; there is no true grey here)
+    --jp-neutral-0:   #{$neutral-0};
+    --jp-neutral-50:  #{$neutral-50};
+    --jp-neutral-100: #{$neutral-100};
+    --jp-neutral-200: #{$neutral-200};
+    --jp-neutral-300: #{$neutral-300};
+    --jp-neutral-400: #{$neutral-400};
+    --jp-neutral-500: #{$neutral-500};
+    --jp-neutral-600: #{$neutral-600};
+    --jp-neutral-700: #{$neutral-700};
+    --jp-neutral-800: #{$neutral-800};
+    --jp-neutral-900: #{$neutral-900};
+
+    // colour — semantic
+    --jp-success: #{$success};
+    --jp-success-hover: #{$success-hover};
+    --jp-success-soft: #{$success-soft};
+    --jp-success-text: #{$success-text};
+    --jp-warning: #{$warning};
+    --jp-warning-hover: #{$warning-hover};
+    --jp-warning-soft: #{$warning-soft};
+    --jp-warning-text: #{$warning-text};
+    --jp-danger: #{$danger};
+    --jp-danger-hover: #{$danger-hover};
+    --jp-danger-soft: #{$danger-soft};
+    --jp-danger-text: #{$danger-text};
+    --jp-info: #{$info};
+    --jp-info-hover: #{$info-hover};
+    --jp-info-soft: #{$info-soft};
+    --jp-info-text: #{$info-text};
+
+    // surfaces and text — semantic aliases over the ramp.
+    // Components use THESE, not the raw ramp, so a dark theme is a matter of
+    // repointing eight names.
+    --jp-bg:             #{$neutral-100};   // chalk
+    --jp-surface:        #{$neutral-0};     // paper
+    --jp-surface-alt:    #{$neutral-50};
+    --jp-surface-sunken: #{$neutral-100};
+    --jp-surface-dark:   #{$primary-800};   // board — header, sidebar, table head
+    --jp-border:         #{$neutral-200};
+    --jp-border-strong:  #{$neutral-300};
+    --jp-text:           #{$neutral-900};   // ink
+    --jp-text-muted:     #{$neutral-500};
+    --jp-text-subtle:    #{$neutral-400};
+    --jp-text-inverse:   #{$neutral-0};
+    --jp-text-on-dark:   #{$primary-200};   // 7.8:1 on --jp-surface-dark
+
+    // the register
+    --jp-rule:              #{$neutral-200};
+    --jp-rule-width:        #{$rule-width};
+    --jp-row-height:        #{$rule-row-height};
+    --jp-row-height-compact: #{$rule-row-height-compact};
+    --jp-margin-rule-width: #{$margin-rule-width};
+    --jp-margin-gutter:     #{$margin-gutter};
+
+    // spacing
+    --jp-space-0:  #{$space-0};
+    --jp-space-1:  #{$space-1};
+    --jp-space-2:  #{$space-2};
+    --jp-space-3:  #{$space-3};
+    --jp-space-4:  #{$space-4};
+    --jp-space-5:  #{$space-5};
+    --jp-space-6:  #{$space-6};
+    --jp-space-8:  #{$space-8};
+    --jp-space-10: #{$space-10};
+    --jp-space-12: #{$space-12};
+    --jp-space-16: #{$space-16};
+    --jp-space-20: #{$space-20};
+
+    // typography
+    --jp-font-family: #{$font-family-base};
+    --jp-font-family-display: #{$font-family-display};
+    --jp-font-family-mono: #{$font-family-mono};
+    --jp-font-size-xs:   #{$font-size-xs};
+    --jp-font-size-sm:   #{$font-size-sm};
+    --jp-font-size-base: #{$font-size-base};
+    --jp-font-size-md:   #{$font-size-md};
+    --jp-font-size-lg:   #{$font-size-lg};
+    --jp-font-size-xl:   #{$font-size-xl};
+    --jp-font-size-2xl:  #{$font-size-2xl};
+    --jp-font-size-3xl:  #{$font-size-3xl};
+    --jp-font-size-4xl:  #{$font-size-4xl};
+    --jp-font-weight-normal:   #{$font-weight-normal};
+    --jp-font-weight-medium:   #{$font-weight-medium};
+    --jp-font-weight-semibold: #{$font-weight-semibold};
+    --jp-font-weight-bold:     #{$font-weight-bold};
+    --jp-line-height-tight:   #{$line-height-tight};
+    --jp-line-height-snug:    #{$line-height-snug};
+    --jp-line-height-normal:  #{$line-height-normal};
+    --jp-line-height-relaxed: #{$line-height-relaxed};
+    --jp-tracking-display: #{$tracking-display};
+    --jp-tracking-tight:   #{$tracking-tight};
+    --jp-tracking-wide:    #{$tracking-wide};
+
+    // radii
+    --jp-radius-sm:   #{$radius-sm};
+    --jp-radius-md:   #{$radius-md};
+    --jp-radius-lg:   #{$radius-lg};
+    --jp-radius-xl:   #{$radius-xl};
+    --jp-radius-2xl:  #{$radius-2xl};
+    --jp-radius-full: #{$radius-full};
+
+    // shadows
+    --jp-shadow-xs: #{$shadow-xs};
+    --jp-shadow-sm: #{$shadow-sm};
+    --jp-shadow-md: #{$shadow-md};
+    --jp-shadow-lg: #{$shadow-lg};
+    --jp-shadow-xl: #{$shadow-xl};
+    --jp-focus-ring: #{$focus-ring};
+
+    // z-index
+    --jp-z-dropdown: #{$z-dropdown};
+    --jp-z-sticky:   #{$z-sticky};
+    --jp-z-header:   #{$z-header};
+    --jp-z-drawer:   #{$z-drawer};
+    --jp-z-overlay:  #{$z-overlay};
+    --jp-z-modal:    #{$z-modal};
+    --jp-z-toast:    #{$z-toast};
+    --jp-z-tooltip:  #{$z-tooltip};
+
+    // layout
+    --jp-header-height: #{$header-height};
+    --jp-sidebar-width: #{$sidebar-width};
+    --jp-container-max-width: #{$container-max-width};
+    --jp-content-padding: #{$content-padding};
+    --jp-auth-card-width: #{$auth-card-width};
+
+    // motion
+    --jp-transition-fast: #{$transition-fast};
+    --jp-transition-base: #{$transition-base};
+    --jp-transition-slow: #{$transition-slow};
+    --jp-easing: #{$easing-standard};
+  }
+}

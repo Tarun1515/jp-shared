@@ -1,0 +1,312 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// DATA TABLES — THE REGISTER
+//
+// This is the screen the whole direction had to survive: 50 rows, 8 columns,
+// 1440px, hour four. Three decisions come from that and nothing else:
+//
+//   THE HEAD IS THE BOARD.   Sticky, slate, chalk text. At row 40 you can still
+//                            read the column you are in without scrolling up,
+//                            and the dark band gives the eye an unambiguous
+//                            top edge to return to.
+//
+//   RULES, NOT STRIPES.      Zebra striping tracks the eye ACROSS a row but
+//                            destroys the sense of a column, and after an hour
+//                            it shimmers. A 1px rule at a fixed 44px rhythm
+//                            does the tracking job better and costs no
+//                            vertical space. `.table--striped` still exists for
+//                            the rare table that genuinely needs it.
+//
+//   A MARGIN COLUMN.         3px down the left of each row, colour set by
+//                            `--jp-row-rule`. Lets someone triage 50 rows
+//                            without reading any of them. It is REINFORCEMENT:
+//                            the row must also carry the state as text, or the
+//                            information does not exist for anyone who cannot
+//                            separate the colours.
+// =============================================================================
+
+/// Scroll container. ALWAYS wrap a table in this — without it a wide table
+/// makes the whole page scroll sideways on a phone, breaking every other
+/// element instead of only the one that is too wide.
+.table-wrap {
+  @include m.scroll-x;
+  @include m.custom-scrollbar;
+
+  width: 100%;
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--jp-font-size-sm);
+
+  th,
+  td {
+    padding: v.$space-2 v.$space-4;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: var(--jp-rule-width) solid var(--jp-rule);
+  }
+
+  // The fixed rhythm. Content that would break it truncates rather than wraps —
+  // one tall row makes the whole page feel broken.
+  tbody td {
+    height: var(--jp-row-height);
+  }
+
+  // ---- the board -----------------------------------------------------------
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--jp-z-sticky);
+    height: v.$rule-row-height;
+    background: var(--jp-surface-dark);
+    border-bottom: 0;
+    color: var(--jp-text-inverse);
+    white-space: nowrap;
+
+    @include m.rule-label;
+
+    // rule-label sets a muted colour meant for paper; on the board it needs
+    // the light one. 7.8:1 against --jp-surface-dark.
+    color: var(--jp-primary-200);
+  }
+
+  thead th:first-child { border-top-left-radius: calc(var(--jp-radius-lg) - 1px); }
+  thead th:last-child { border-top-right-radius: calc(var(--jp-radius-lg) - 1px); }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  // ---- the margin column ---------------------------------------------------
+  // Drawn as an inset shadow on the first cell rather than a border on the
+  // <tr>: with border-collapse: collapse a row's own box-shadow is not painted
+  // in Chrome, and a border would shift every column by 3px.
+  tbody tr > td:first-child {
+    box-shadow: inset var(--jp-margin-rule-width) 0 0 var(--jp-row-rule, transparent);
+    padding-left: var(--jp-margin-gutter);
+  }
+
+  thead th:first-child { padding-left: var(--jp-margin-gutter); }
+
+  // Numbers line up only with tabular figures. Without this, a column of
+  // salaries is visually ragged and hard to compare down the page.
+  .table__number {
+    text-align: right;
+
+    @include m.tabular;
+  }
+
+  /// Ids, dates, PRT/TGT/PGT codes.
+  .table__code {
+    @include m.tabular;
+
+    color: var(--jp-text-muted);
+  }
+
+  .table__actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /// The primary identifying cell in a row — a person's name, a job title.
+  .table__primary {
+    font-weight: var(--jp-font-weight-medium);
+    color: var(--jp-text);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// ROW STATE
+//
+// The margin column carries ATTENTION and nothing else. It had four colours;
+// four colours meant the eye had to decode rather than triage, which is the
+// opposite of what a 3px rule is for. One colour, one meaning: this row needs
+// you. Every other state is said in the status column, in words.
+//
+// `--waiting` / `--done` / `--active` are kept for screens that are genuinely
+// about progress rather than triage. They must not appear in the same table as
+// `--attention`.
+// -----------------------------------------------------------------------------
+
+.row--attention { --jp-row-rule: var(--jp-danger); }
+.row--waiting   { --jp-row-rule: var(--jp-warning); }
+.row--done      { --jp-row-rule: var(--jp-success); }
+.row--active    { --jp-row-rule: var(--jp-primary-400); }
+
+/// A finished row — closed, withdrawn, archived. The whole row recedes,
+/// rather than its stage bar being struck through: a struck bar is unreadable
+/// at a glance, and being readable at a glance is the only reason it is there.
+.row--muted {
+  color: var(--jp-text-muted);
+
+  .table__primary { font-weight: var(--jp-font-weight-normal); }
+
+  .roll { opacity: 0.45; }
+}
+
+/// Available, but rules are the default for a reason — see the note above.
+.table--striped tbody tr:nth-child(odd) { background: var(--jp-surface-alt); }
+
+.table--hover tbody tr {
+  transition: background-color var(--jp-transition-fast) var(--jp-easing);
+
+  &:hover { background: var(--jp-surface-alt); }
+
+  @include m.reduced-motion { transition: none; }
+}
+
+.table--compact {
+  tbody td { height: var(--jp-row-height-compact); }
+
+  th,
+  td { padding: v.$space-1 v.$space-3; }
+}
+
+/// A row the user can click through to a detail page. Needs a real focusable
+/// control inside it for keyboard users — a click handler on the <tr> alone is
+/// not reachable by keyboard.
+.table__row--clickable { cursor: pointer; }
+
+/// Sortable column header button.
+.table__sort {
+  @include m.focus-ring;
+
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+
+  &:hover { color: var(--jp-text-inverse); }
+
+  &:focus-visible { outline-color: var(--jp-primary-200); }
+
+  &__indicator {
+    font-size: 0.7em;
+    opacity: 0.45;
+  }
+
+  &[aria-sort='ascending'] .table__sort__indicator,
+  &[aria-sort='descending'] .table__sort__indicator {
+    opacity: 1;
+    color: var(--jp-text-inverse);
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// EMPTY AND LOADING STATES
+// -----------------------------------------------------------------------------
+
+/// An empty result set is a normal outcome, not a failure. Say what would fill
+/// the table, and offer the action that would.
+.table__empty {
+  padding: v.$space-12 v.$space-6;
+  text-align: center;
+  color: var(--jp-text-muted);
+}
+
+.table__loading {
+  padding: 0;
+}
+
+/// Skeleton row. Content-shaped, not a spinner: the page keeps its rhythm
+/// while it loads, so nothing jumps when the rows arrive.
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--jp-neutral-100);
+  border-radius: var(--jp-radius-sm);
+  height: 0.75rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 70%),
+      transparent
+    );
+    animation: jp-skeleton 1.4s ease-in-out infinite;
+  }
+
+  @include m.reduced-motion {
+    &::after { animation: none; }
+  }
+}
+
+@keyframes jp-skeleton {
+  to { transform: translateX(100%); }
+}
+
+
+// -----------------------------------------------------------------------------
+// PAGER
+//
+// Sits inside the ruled area rather than below it, so the table reads as one
+// continuous sheet rather than a grid with a control bar bolted underneath.
+// -----------------------------------------------------------------------------
+
+.table-pager {
+  @include m.flex-between(center, v.$space-4);
+
+  flex-wrap: wrap;
+  padding: v.$space-2 v.$space-4;
+  border-top: var(--jp-rule-width) solid var(--jp-rule);
+  background: var(--jp-surface-alt);
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+
+  &__summary {
+    white-space: nowrap;
+
+    @include m.tabular;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: v.$space-1;
+  }
+
+  &__page {
+    @include m.flex-center;
+    @include m.focus-ring;
+    @include m.tabular;
+
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 v.$space-2;
+    border: 1px solid transparent;
+    border-radius: var(--jp-radius-sm);
+    background: transparent;
+    color: var(--jp-text);
+    font-size: var(--jp-font-size-xs);
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--jp-neutral-100); }
+
+    &[aria-current='page'] {
+      background: var(--jp-primary);
+      border-color: var(--jp-primary);
+      color: var(--jp-text-inverse);
+      font-weight: var(--jp-font-weight-semibold);
+    }
+
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+}

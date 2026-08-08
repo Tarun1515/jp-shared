@@ -1,0 +1,296 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// FORMS
+//
+// Inputs, selects, textareas, checkboxes, radios, and validation states.
+//
+// Every invalid field must convey its state by MORE than colour: the message
+// text under it, and aria-invalid + aria-describedby on the control. Roughly
+// one in twelve men has some colour vision deficiency, and a red border on its
+// own tells them nothing.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// FIELD WRAPPER
+// -----------------------------------------------------------------------------
+
+.field {
+  @include m.flex-column(v.$space-1);
+
+  margin-bottom: v.$space-4;
+
+  &--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: v.$space-2;
+  }
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.field__label {
+  font-size: var(--jp-font-size-sm);
+  font-weight: var(--jp-font-weight-medium);
+  color: var(--jp-text);
+}
+
+/// Marks a required field. The asterisk is decorative — the control itself
+/// carries `required`, which is what a screen reader announces.
+/// Marks an OPTIONAL field.
+///
+/// The convention is deliberately inverted from the usual red asterisk. In this
+/// product nearly every field is required, so marking all of them marks nothing
+/// — it is a row of red dots the eye learns to skip. Marking the one or two
+/// that are genuinely optional carries actual information.
+///
+/// Not aria-hidden, unlike the asterisk it replaces: "Optional" is a real fact
+/// about the field, and the absence of `required` on the control is a weaker
+/// signal than the word.
+.field__optional {
+  margin-left: v.$space-2;
+  font-family: var(--jp-font-family-mono);
+  font-size: 0.625rem;
+  font-weight: var(--jp-font-weight-normal);
+  letter-spacing: var(--jp-tracking-wide);
+  text-transform: uppercase;
+  color: var(--jp-text-subtle);
+}
+
+.field__helper {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+  line-height: var(--jp-line-height-snug);
+}
+
+.field__error {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-danger-text);
+  line-height: var(--jp-line-height-snug);
+}
+
+
+// -----------------------------------------------------------------------------
+// TEXT CONTROLS
+// -----------------------------------------------------------------------------
+
+.form-control {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: v.$space-2 v.$space-3;
+  border: 1px solid var(--jp-border-strong);
+  border-radius: var(--jp-radius-md);
+  background: var(--jp-surface);
+  color: var(--jp-text);
+  font-family: inherit;
+
+  // 16px minimum. Below it, Safari on iOS zooms the whole page in when the
+  // field takes focus and does not zoom back out.
+  font-size: var(--jp-font-size-md);
+  line-height: 1.4;
+  transition:
+    border-color var(--jp-transition-fast) var(--jp-easing),
+    box-shadow var(--jp-transition-fast) var(--jp-easing);
+
+  &::placeholder { color: var(--jp-text-subtle); }
+
+  &:hover:not(:disabled):not([readonly]) { border-color: var(--jp-neutral-400); }
+
+  &:focus {
+    outline: none;
+    border-color: var(--jp-primary);
+    box-shadow: var(--jp-focus-ring);
+  }
+
+  &:disabled {
+    background: var(--jp-surface-sunken);
+    color: var(--jp-text-muted);
+    cursor: not-allowed;
+  }
+
+  &[readonly] {
+    background: var(--jp-surface-alt);
+    cursor: default;
+  }
+
+  // Driven by aria-invalid so the visual state and the accessible state can
+  // never disagree.
+  &[aria-invalid='true'] {
+    border-color: var(--jp-danger);
+
+    &:focus { box-shadow: 0 0 0 3px rgb(169 48 42 / 22%); }
+  }
+
+  @include m.reduced-motion { transition: none; }
+}
+
+textarea.form-control {
+  min-height: 6rem;
+  resize: vertical;
+  line-height: var(--jp-line-height-normal);
+}
+
+select.form-control {
+  cursor: pointer;
+  appearance: none;
+  padding-right: v.$space-8;
+
+  // Inline SVG chevron — a data URI keeps it self-contained with no extra
+  // request and no icon font.
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%2364748b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right v.$space-3 center;
+
+  &:disabled { cursor: not-allowed; }
+}
+
+/// Wraps an input that has a leading or trailing adornment.
+.input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+
+  .form-control {
+    border-radius: 0;
+
+    &:first-child { border-start-start-radius: var(--jp-radius-md); border-end-start-radius: var(--jp-radius-md); }
+    &:last-child { border-start-end-radius: var(--jp-radius-md); border-end-end-radius: var(--jp-radius-md); }
+  }
+
+  &__addon {
+    @include m.flex-center;
+
+    padding: 0 v.$space-3;
+    background: var(--jp-surface-alt);
+    border: 1px solid var(--jp-border-strong);
+    color: var(--jp-text-muted);
+    font-size: var(--jp-font-size-sm);
+    white-space: nowrap;
+
+    &:first-child { border-right: 0; border-start-start-radius: var(--jp-radius-md); border-end-start-radius: var(--jp-radius-md); }
+    &:last-child { border-left: 0; border-start-end-radius: var(--jp-radius-md); border-end-end-radius: var(--jp-radius-md); }
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// CHECKBOX AND RADIO
+// -----------------------------------------------------------------------------
+
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-2;
+  cursor: pointer;
+  user-select: none;
+
+  &__input {
+    flex-shrink: 0;
+
+    // 1.125rem, not the browser default ~13px — a checkbox has to be a
+    // comfortable target on a touch screen.
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0.15rem 0 0;
+    accent-color: var(--jp-primary);
+    cursor: pointer;
+
+    @include m.focus-ring;
+
+    &:disabled {
+      cursor: not-allowed;
+
+      + .form-check__label { color: var(--jp-text-muted); cursor: not-allowed; }
+    }
+  }
+
+  &__label {
+    font-size: var(--jp-font-size-base);
+    line-height: var(--jp-line-height-snug);
+    cursor: pointer;
+  }
+}
+
+/// Vertical stack of related checkboxes or radios, with a shared group label.
+.form-check-group {
+  @include m.flex-column(v.$space-2);
+
+  &--horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: v.$space-4;
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// LAYOUT
+// -----------------------------------------------------------------------------
+
+/// Two-column field grid that collapses to one column on small screens.
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: v.$space-4;
+
+  @include m.up(md) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__full { grid-column: 1 / -1; }
+}
+
+.form-section {
+  margin-bottom: v.$space-8;
+
+  &__title {
+    font-size: var(--jp-font-size-lg);
+    font-weight: var(--jp-font-weight-semibold);
+    margin-bottom: v.$space-1;
+  }
+
+  &__description {
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text-muted);
+    margin-bottom: v.$space-4;
+  }
+
+  &:last-child { margin-bottom: 0; }
+}
+
+/// Sticky action bar at the foot of a long form.
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-2;
+  padding-top: v.$space-5;
+  margin-top: v.$space-6;
+  border-top: 1px solid var(--jp-border);
+
+  @include m.down(sm) {
+    flex-direction: column-reverse;
+
+    .btn { width: 100%; }
+  }
+}
+
+
+/// Label row that carries a trailing action — "Forgot password?" beside the
+/// Password label. The link belongs here rather than under the field, where it
+/// competes with the error message for the same spot.
+.field__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: v.$space-3;
+
+  .field__label { margin: 0; }
+}
+
+/// The trailing link on a label row.
+.field__action {
+  font-size: var(--jp-font-size-xs);
+  white-space: nowrap;
+}

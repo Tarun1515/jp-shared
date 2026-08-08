@@ -1,0 +1,311 @@
+@use 'sass:map';
+@use 'variables' as v;
+
+// =============================================================================
+// MIXINS
+//
+// Emits no CSS on its own. `@use 'mixins' as m;` from any component.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// RESPONSIVE
+//
+// Mobile-first: write the small-screen rule, then layer larger screens on with
+// `up()`. Never write a raw media query in a component — a hardcoded 768px
+// somewhere is exactly how a layout drifts out of step with the rest.
+// -----------------------------------------------------------------------------
+
+/// Applies from the named breakpoint upwards.
+/// @example scss
+///   .card { padding: v.$space-4; @include m.up(md) { padding: v.$space-6; } }
+@mixin up($name) {
+  $width: map.get(v.$breakpoints, $name);
+
+  @if $width == null {
+    @error "Unknown breakpoint `#{$name}`. Valid: #{map.keys(v.$breakpoints)}.";
+  }
+
+  @media (min-width: $width) {
+    @content;
+  }
+}
+
+/// Applies below the named breakpoint. The 0.02px shaves the boundary so `down`
+/// and `up` at the same name can never both match.
+@mixin down($name) {
+  $width: map.get(v.$breakpoints, $name);
+
+  @if $width == null {
+    @error "Unknown breakpoint `#{$name}`. Valid: #{map.keys(v.$breakpoints)}.";
+  }
+
+  @media (max-width: $width - 0.02px) {
+    @content;
+  }
+}
+
+/// Applies between two breakpoints, inclusive of the lower.
+@mixin between($from, $to) {
+  $min: map.get(v.$breakpoints, $from);
+  $max: map.get(v.$breakpoints, $to);
+
+  @media (min-width: $min) and (max-width: $max - 0.02px) {
+    @content;
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// FLEX AND GRID
+// -----------------------------------------------------------------------------
+
+@mixin flex($direction: row, $justify: flex-start, $align: stretch, $gap: null) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+
+  @if $gap != null {
+    gap: $gap;
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// The label-left / actions-right row that appears all over the portal.
+@mixin flex-between($align: center, $gap: null) {
+  display: flex;
+  align-items: $align;
+  justify-content: space-between;
+
+  @if $gap != null {
+    gap: $gap;
+  }
+}
+
+@mixin flex-column($gap: null) {
+  display: flex;
+  flex-direction: column;
+
+  @if $gap != null {
+    gap: $gap;
+  }
+}
+
+/// Responsive auto-fitting grid — no breakpoints needed.
+@mixin grid-auto($min-width: 16rem, $gap: v.$space-4) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+
+// -----------------------------------------------------------------------------
+// TEXT
+// -----------------------------------------------------------------------------
+
+/// Single-line ellipsis. Needs a bounded width to do anything.
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/// Ellipsis after N lines.
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/// Visible to screen readers, invisible on screen. For labels that the layout
+/// conveys but assistive technology cannot infer.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+// -----------------------------------------------------------------------------
+// SURFACES
+// -----------------------------------------------------------------------------
+
+@mixin card($padding: v.$space-5) {
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+  padding: $padding;
+}
+
+@mixin card-hover {
+  transition: box-shadow var(--jp-transition-base) var(--jp-easing),
+              border-color var(--jp-transition-base) var(--jp-easing);
+
+  &:hover {
+    border-color: var(--jp-border-strong);
+    box-shadow: var(--jp-shadow-md);
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// INTERACTION
+// -----------------------------------------------------------------------------
+
+/// Keyboard focus ring.
+///
+/// `:focus-visible`, not `:focus`, so a mouse click does not leave a ring
+/// behind while a keyboard user still gets one. Never remove this without
+/// putting something equally visible in its place — it is the only way a
+/// keyboard user can tell where they are on the page.
+@mixin focus-ring($offset: 2px) {
+  &:focus-visible {
+    outline: 2px solid var(--jp-primary);
+    outline-offset: $offset;
+  }
+}
+
+@mixin disabled {
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/// Honour a user who has asked their OS to reduce motion.
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// SCROLLING
+// -----------------------------------------------------------------------------
+
+/// Lets wide content scroll inside its own box.
+///
+/// Wrap every table and code block in this. Without it the whole page scrolls
+/// sideways on a phone, which breaks the layout rather than the one element
+/// that is too wide.
+@mixin scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@mixin custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--jp-neutral-300) transparent;
+
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--jp-neutral-300);
+    border-radius: var(--jp-radius-full);
+  }
+
+  &::-webkit-scrollbar-thumb:hover { background: var(--jp-neutral-400); }
+}
+
+
+// -----------------------------------------------------------------------------
+// THE REGISTER
+//
+// The ruling system. See the design direction note at the top of _variables.scss:
+// the product is drawn with rules on a fixed rhythm rather than with elevation,
+// because that is what a 50-row table read for four hours actually needs.
+// -----------------------------------------------------------------------------
+
+/// A ruled row: fixed height, a rule beneath it, no rule on the last one.
+///
+/// The fixed height is what makes a long list scannable — the eye locks onto
+/// the rhythm and stops re-measuring every row. Content that would break the
+/// rhythm should truncate, not wrap.
+@mixin ruled-row($height: var(--jp-row-height)) {
+  min-height: $height;
+  display: flex;
+  align-items: center;
+  border-bottom: var(--jp-rule-width) solid var(--jp-rule);
+
+  &:last-child { border-bottom: 0; }
+}
+
+/// The left margin rule — the register's marking column.
+///
+/// Colour encodes state, and ALWAYS alongside a text label in the row. A
+/// colour that is the only carrier of meaning is unreadable for a good number
+/// of people, and this one is 3px wide, which makes that worse rather than
+/// better. It is reinforcement: it lets someone triage 50 rows at a glance
+/// once they already know what the colours mean.
+@mixin margin-rule($colour: var(--jp-rule)) {
+  position: relative;
+  padding-left: var(--jp-margin-gutter);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--jp-margin-rule-width);
+    background: $colour;
+  }
+}
+
+/// Display type. Bricolage Grotesque, tightened — it is drawn loose for
+/// signage and needs pulling in at screen sizes.
+@mixin display-type($size: var(--jp-font-size-2xl), $weight: 600) {
+  font-family: var(--jp-font-family-display);
+  font-size: $size;
+  font-weight: $weight;
+  line-height: var(--jp-line-height-tight);
+  letter-spacing: var(--jp-tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/// The small uppercase label that sits on a rule — column heads, section
+/// markers, the register's own hand-lettered captions.
+@mixin rule-label {
+  font-family: var(--jp-font-family-mono);
+  font-size: var(--jp-font-size-xs);
+  font-weight: 500;
+  letter-spacing: var(--jp-tracking-wide);
+  text-transform: uppercase;
+  color: var(--jp-text-muted);
+}
+
+/// Tabular figures. Any column of numbers, ids or dates.
+@mixin tabular {
+  font-family: var(--jp-font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/// The one orchestrated entrance, used once per page on the top-level region.
+/// Children stagger via --jp-enter-index. Motion is 190ms ease-out and moves
+/// 6px — enough to read as arrival, not enough to be a performance.
+@mixin enter-sequence($stagger: 45ms) {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: jp-enter var(--jp-transition-base) var(--jp-easing) both;
+    animation-delay: calc(var(--jp-enter-index, 0) * #{$stagger});
+  }
+}

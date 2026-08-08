@@ -1,0 +1,99 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// The shell skeleton — .shell, .shell__header, .shell__sidebar, .nav-link and
+// friends — lives in styles/_layout.scss, because all three portals and the
+// public site share it. Only what is specific to this component belongs here.
+
+.shell__brand {
+  font-weight: var(--jp-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.shell__spacer {
+  flex: 1;
+}
+
+.shell__user {
+  max-width: 14rem;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-primary-200);   // 7.8:1 on the board
+}
+
+// Lives on the board, so it takes the board's colours. Without this it
+// inherits .btn's paper background and hovers to near-white on a dark header.
+.shell__menu-toggle {
+  display: none;
+  background: transparent;
+  border-color: rgb(255 255 255 / 20%);
+  color: var(--jp-text-inverse);
+
+  &:hover {
+    background: rgb(255 255 255 / 10%);
+    color: var(--jp-text-inverse);
+  }
+
+  &:focus-visible { outline-color: var(--jp-primary-200); }
+
+  @include m.down(md) {
+    display: inline-flex;
+  }
+}
+
+.shell__nav-empty {
+  padding: v.$space-2 v.$space-3;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+}
+
+// The skip link targets this, so it takes focus programmatically. Suppress the
+// ring: the destination is a whole region, and outlining it is visual noise
+// rather than useful feedback.
+.shell__main:focus {
+  outline: none;
+}
+
+// A group node: a heading whose children carry the links. Not focusable and
+// not a link, because it goes nowhere — RoutePath is NULL for these rows.
+.nav-group {
+  display: block;
+  padding: v.$space-3 v.$space-3 v.$space-1;
+  font-size: var(--jp-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--jp-text-muted);
+}
+
+// Second level. Indent only — the two levels are already distinguished by the
+// uppercase heading above them, so a second visual treatment would be noise.
+.nav-link--child {
+  padding-left: v.$space-6;
+}
+
+// The drawer's own way out. Rendered only while the drawer is open and only
+// below md, so it never appears on the pinned desktop sidebar.
+.shell__nav-close {
+  @include m.focus-ring;
+
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  width: 100%;
+  min-height: 2.25rem;
+  margin-bottom: v.$space-3;
+  padding: v.$space-2 v.$space-3 v.$space-2 v.$space-4;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 0;
+  background: transparent;
+  color: var(--jp-primary-200);
+  font: inherit;
+  font-size: var(--jp-font-size-sm);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { color: var(--jp-text-inverse); }
+
+  &:focus-visible { outline-color: var(--jp-primary-200); }
+}

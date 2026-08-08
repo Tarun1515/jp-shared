@@ -1,0 +1,118 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:host {
+  display: block;
+}
+
+.multi {
+  position: relative;
+
+  &__control {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    min-height: 2.5rem;
+    text-align: left;
+    cursor: pointer;
+
+    &:disabled { cursor: not-allowed; }
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: v.$space-1;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: v.$space-1;
+    padding: 0.1rem v.$space-2;
+    border-radius: var(--jp-radius-full);
+    background: var(--jp-primary-soft);
+    color: var(--jp-primary-800);
+    font-size: var(--jp-font-size-sm);
+    line-height: 1.5;
+  }
+
+  &__chip-remove,
+  &__clear {
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.7;
+
+    &:hover { opacity: 1; }
+
+    @include m.focus-ring(1px);
+  }
+
+  &__clear {
+    flex-shrink: 0;
+    color: var(--jp-text-muted);
+  }
+
+  &__placeholder { color: var(--jp-text-subtle); }
+
+  &__panel {
+    position: absolute;
+    top: calc(100% + #{v.$space-1});
+    left: 0;
+    right: 0;
+    z-index: var(--jp-z-dropdown);
+    background: var(--jp-surface);
+    border: 1px solid var(--jp-border-strong);
+    border-radius: var(--jp-radius-md);
+    box-shadow: var(--jp-shadow-lg);
+    padding: v.$space-2;
+  }
+
+  &__search { margin-bottom: v.$space-2; }
+
+  &__options {
+    @include m.custom-scrollbar;
+
+    // Capped so a long master list — every subject, every city — cannot push
+    // the page height out. Beyond this the panel scrolls.
+    max-height: 15rem;
+    overflow-y: auto;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    padding: v.$space-2;
+    border-radius: var(--jp-radius-sm);
+    cursor: pointer;
+
+    &:hover { background: var(--jp-surface-alt); }
+
+    &--selected { background: var(--jp-primary-soft); }
+
+    &--disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    @include m.focus-ring(-2px);
+  }
+
+  &__no-results,
+  &__limit {
+    margin: 0;
+    padding: v.$space-3 v.$space-2;
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text-muted);
+    text-align: center;
+  }
+
+  &__limit {
+    border-top: 1px solid var(--jp-border);
+    color: var(--jp-warning);
+  }
+}

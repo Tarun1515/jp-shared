@@ -1,0 +1,29 @@
+<!--
+  role="group" rather than six loose inputs: it is one value, and a screen
+  reader should announce it as one thing before stepping into the boxes.
+
+  autocomplete="one-time-code" goes on the FIRST box only. On iOS that is what
+  surfaces the SMS code above the keyboard; repeating it on every box makes the
+  suggestion fire six times.
+-->
+<div class="otp" role="group" [attr.aria-label]="ariaLabel()">
+  @for (index of indexes(); track index) {
+    <input
+      #box
+      class="otp__box"
+      type="text"
+      inputmode="numeric"
+      maxlength="1"
+      [attr.autocomplete]="index === 0 ? 'one-time-code' : 'off'"
+      [attr.aria-label]="'Digit ' + (index + 1) + ' of ' + length()"
+      [attr.aria-invalid]="invalid()"
+      [disabled]="disabled()"
+      [value]="digits()[index]"
+      (input)="onInput($event, index)"
+      (keydown)="onKeydown($event, index)"
+      (paste)="onPaste($event, index)"
+      (focus)="onFocus($event)"
+      (blur)="onBlur()"
+    />
+  }
+</div>

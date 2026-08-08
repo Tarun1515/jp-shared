@@ -1,0 +1,5 @@
+// .field, .form-control and .input-group live in styles/_forms.scss, so a
+// hand-written form and this component look identical.
+:host {
+  display: block;
+}

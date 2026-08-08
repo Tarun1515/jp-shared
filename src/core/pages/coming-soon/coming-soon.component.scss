@@ -1,0 +1,17 @@
+@use 'variables' as v;
+
+.placeholder {
+  max-width: 32rem;
+  padding: v.$space-8;
+
+  &__title {
+    margin: 0 0 v.$space-2;
+    font-size: var(--jp-font-size-xl);
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--jp-text-muted);
+    line-height: var(--jp-line-height-relaxed);
+  }
+}

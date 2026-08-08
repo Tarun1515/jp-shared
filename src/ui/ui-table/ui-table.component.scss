@@ -1,0 +1,24 @@
+@use 'variables' as v;
+
+// .table-wrap, .table and .table-pager live in styles/_tables.scss, so a
+// hand-written table matches this component.
+:host {
+  display: block;
+}
+
+.table__empty-title {
+  margin: 0 0 v.$space-1;
+  font-weight: var(--jp-font-weight-semibold);
+  color: var(--jp-text);
+}
+
+.table__empty-message {
+  margin: 0;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+}
+
+.table-pager__gap {
+  padding: 0 v.$space-1;
+  color: var(--jp-text-subtle);
+}

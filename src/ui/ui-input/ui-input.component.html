@@ -1,0 +1,62 @@
+<div class="field">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <!--
+          Only the OPTIONAL fields are marked. Nearly every field in this
+          product is required, and marking all of them is noise that says
+          nothing; marking the two that are not says something useful.
+          Decorative either way — the control carries `required`, which is what
+          assistive technology announces.
+        -->
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  @if (prefix() || suffix()) {
+    <div class="input-group">
+      @if (prefix(); as text) {
+        <span class="input-group__addon">{{ text }}</span>
+      }
+
+      <ng-container [ngTemplateOutlet]="control" />
+
+      @if (suffix(); as text) {
+        <span class="input-group__addon">{{ text }}</span>
+      }
+    </div>
+  } @else {
+    <ng-container [ngTemplateOutlet]="control" />
+  }
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <!-- role="alert" so the message is announced when it appears, not only
+         when the user happens to move focus back to the field. -->
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>
+
+<ng-template #control>
+  <input
+    class="form-control"
+    [id]="controlId"
+    [type]="type()"
+    [value]="value() ?? ''"
+    [placeholder]="placeholder()"
+    [disabled]="isDisabled()"
+    [readonly]="readonly()"
+    [required]="required()"
+    [attr.maxlength]="maxlength()"
+    [attr.autocomplete]="autocomplete()"
+    [attr.aria-invalid]="hasError()"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput($event)"
+    (blur)="markTouched()"
+  />
+</ng-template>

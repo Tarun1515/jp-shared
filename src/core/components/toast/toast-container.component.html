@@ -1,0 +1,21 @@
+<!--
+  aria-live on the container, not on each toast: the region has to exist in the
+  DOM before a message is inserted into it, or assistive technology has nothing
+  to watch and the announcement is missed.
+-->
+<div class="toasts" aria-live="polite" aria-atomic="false">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="toast toast--{{ toast.kind }}" role="alert">
+      <span class="toast__message">{{ toast.message }}</span>
+
+      <button
+        type="button"
+        class="toast__close"
+        aria-label="Dismiss notification"
+        (click)="toastService.dismiss(toast.id)"
+      >
+        &times;
+      </button>
+    </div>
+  }
+</div>

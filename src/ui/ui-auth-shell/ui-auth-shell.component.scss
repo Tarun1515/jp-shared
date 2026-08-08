@@ -1,0 +1,3 @@
+// The auth surface is defined once in styles/_auth.scss, because the account
+// status page and the invite screen use the same sheet without being auth
+// routes. This file is deliberately empty.

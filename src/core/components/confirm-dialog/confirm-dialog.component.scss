@@ -1,0 +1,32 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--jp-z-modal);
+  display: grid;
+  place-items: center;
+  padding: v.$space-4;
+  background: rgb(15 23 42 / 45%);
+}
+
+.dialog {
+  width: min(28rem, 100%);
+  padding: v.$space-6;
+  background: var(--jp-surface);
+  border-radius: var(--jp-radius-xl);
+  box-shadow: var(--jp-shadow-xl);
+
+  &__title {
+    margin: 0 0 v.$space-2;
+    font-size: var(--jp-font-size-lg);
+    font-weight: var(--jp-font-weight-semibold);
+  }
+
+  &__message {
+    margin: 0 0 v.$space-6;
+    color: var(--jp-text-muted);
+    line-height: var(--jp-line-height-relaxed);
+  }
+}

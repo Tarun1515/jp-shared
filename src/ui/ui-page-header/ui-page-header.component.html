@@ -1,0 +1,14 @@
+<header class="page__header">
+  <div class="page__heading">
+    <h1 class="page__title">{{ title() }}</h1>
+
+    @if (description(); as text) {
+      <p class="page__description">{{ text }}</p>
+    }
+  </div>
+
+  <!-- Projected with the `actions` attribute: <ui-button actions>…</ui-button> -->
+  <div class="page__actions">
+    <ng-content select="[actions]" />
+  </div>
+</header>

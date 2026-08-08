@@ -1,0 +1,68 @@
+<div class="auth">
+  <header class="auth__board">
+    <span class="wordmark">
+      <span class="wordmark__mark">Staffroom</span>
+      <span class="wordmark__rest">India</span>
+    </span>
+
+    <span class="auth__board-note">{{ boardNote() }}</span>
+  </header>
+
+  <div class="auth__body">
+    <div class="auth__column">
+      <!--
+        The entrance: three regions, 45ms apart. One sequence per page rather
+        than effects scattered across elements — see _variables.scss on motion.
+      -->
+      <section
+        class="auth__sheet enter"
+        [class.auth__sheet--wide]="wide()"
+        [style.--jp-auth-rule]="
+          tone() === 'danger'
+            ? 'var(--jp-danger)'
+            : tone() === 'waiting'
+              ? 'var(--jp-warning)'
+              : 'var(--jp-primary-600)'
+        "
+      >
+        <div class="auth__head">
+          @if (step(); as stepLabel) {
+            <span class="auth__step" aria-hidden="true">{{ stepLabel }}</span>
+          }
+
+          <h1 class="auth__title">{{ title() }}</h1>
+
+          @if (subtitle(); as text) {
+            <p class="auth__subtitle">{{ text }}</p>
+          }
+        </div>
+
+        <div class="auth__content">
+          <ng-content />
+        </div>
+
+        <ng-content select="[authFoot]" />
+      </section>
+
+      <div class="auth__aside enter" style="--jp-enter-index: 2">
+        <ng-content select="[authAside]" />
+      </div>
+    </div>
+
+    <!--
+      THE BOARD, continued.
+
+      The header strip and this panel are the same slate, so at desktop they
+      read as one continuous dark field wrapping the page.
+
+      aria-hidden: whatever an app projects here is supporting illustration for
+      a form that already stands on its own. A screen reader stepping through
+      it before reaching the sign-in fields would be reading furniture.
+    -->
+    <aside class="auth__panel" aria-hidden="true">
+      <div class="auth__panel-inner">
+        <ng-content select="[authPanel]" />
+      </div>
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,170 @@
+@use 'sass:map';
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// UTILITIES
+//
+// A small, deliberate set — spacing, display, flex, and a few text helpers.
+//
+// This is NOT a utility-first framework. Anything structural belongs in the
+// component's own stylesheet, where it can be named. Utilities are for the
+// one-off nudge that would otherwise mean inventing a class for a single rule.
+// =============================================================================
+
+$spacing-scale: (
+  '0': v.$space-0,
+  '1': v.$space-1,
+  '2': v.$space-2,
+  '3': v.$space-3,
+  '4': v.$space-4,
+  '5': v.$space-5,
+  '6': v.$space-6,
+  '8': v.$space-8,
+  '10': v.$space-10,
+  '12': v.$space-12,
+);
+
+// -----------------------------------------------------------------------------
+// SPACING — .m-4, .mt-2, .mx-auto, .p-6, .py-3 ...
+// -----------------------------------------------------------------------------
+
+@each $key, $value in $spacing-scale {
+  .m-#{$key}  { margin: $value; }
+  .mt-#{$key} { margin-top: $value; }
+  .mr-#{$key} { margin-right: $value; }
+  .mb-#{$key} { margin-bottom: $value; }
+  .ml-#{$key} { margin-left: $value; }
+  .mx-#{$key} { margin-inline: $value; }
+  .my-#{$key} { margin-block: $value; }
+
+  .p-#{$key}  { padding: $value; }
+  .pt-#{$key} { padding-top: $value; }
+  .pr-#{$key} { padding-right: $value; }
+  .pb-#{$key} { padding-bottom: $value; }
+  .pl-#{$key} { padding-left: $value; }
+  .px-#{$key} { padding-inline: $value; }
+  .py-#{$key} { padding-block: $value; }
+
+  .gap-#{$key} { gap: $value; }
+}
+
+.mx-auto { margin-inline: auto; }
+.mt-auto { margin-top: auto; }
+.ml-auto { margin-left: auto; }
+
+
+// -----------------------------------------------------------------------------
+// DISPLAY AND FLEX
+// -----------------------------------------------------------------------------
+
+.d-none         { display: none; }
+.d-block        { display: block; }
+.d-inline-block { display: inline-block; }
+.d-flex         { display: flex; }
+.d-inline-flex  { display: inline-flex; }
+.d-grid         { display: grid; }
+
+.flex-row     { flex-direction: row; }
+.flex-column  { flex-direction: column; }
+.flex-wrap    { flex-wrap: wrap; }
+.flex-1       { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.items-start   { align-items: flex-start; }
+.items-center  { align-items: center; }
+.items-end     { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+
+.justify-start   { justify-content: flex-start; }
+.justify-center  { justify-content: center; }
+.justify-end     { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+
+
+// -----------------------------------------------------------------------------
+// TEXT
+// -----------------------------------------------------------------------------
+
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+.text-xs   { font-size: var(--jp-font-size-xs); }
+.text-sm   { font-size: var(--jp-font-size-sm); }
+.text-base { font-size: var(--jp-font-size-base); }
+.text-lg   { font-size: var(--jp-font-size-lg); }
+.text-xl   { font-size: var(--jp-font-size-xl); }
+
+.font-normal   { font-weight: var(--jp-font-weight-normal); }
+.font-medium   { font-weight: var(--jp-font-weight-medium); }
+.font-semibold { font-weight: var(--jp-font-weight-semibold); }
+.font-bold     { font-weight: var(--jp-font-weight-bold); }
+
+.text-primary { color: var(--jp-primary); }
+.text-success { color: var(--jp-success); }
+.text-warning { color: var(--jp-warning); }
+.text-danger  { color: var(--jp-danger); }
+
+/// Aligns a column of numbers. Worth reaching for in any table of money,
+/// counts or dates.
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+
+// -----------------------------------------------------------------------------
+// SIZING AND SURFACE
+// -----------------------------------------------------------------------------
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.rounded-sm   { border-radius: var(--jp-radius-sm); }
+.rounded-md   { border-radius: var(--jp-radius-md); }
+.rounded-lg   { border-radius: var(--jp-radius-lg); }
+.rounded-full { border-radius: var(--jp-radius-full); }
+
+.shadow-sm { box-shadow: var(--jp-shadow-sm); }
+.shadow-md { box-shadow: var(--jp-shadow-md); }
+
+.bg-surface { background: var(--jp-surface); }
+.bg-sunken  { background: var(--jp-surface-sunken); }
+
+.border    { border: 1px solid var(--jp-border); }
+.border-top { border-top: 1px solid var(--jp-border); }
+
+
+// -----------------------------------------------------------------------------
+// ACCESSIBILITY
+// -----------------------------------------------------------------------------
+
+/// Announced by screen readers, invisible on screen.
+.visually-hidden { @include m.visually-hidden; }
+
+/// Hidden until focused. Used by the skip link.
+.skip-link {
+  @include m.visually-hidden;
+
+  &:focus {
+    position: fixed;
+    top: v.$space-2;
+    left: v.$space-2;
+    z-index: var(--jp-z-tooltip);
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: v.$space-2 v.$space-4;
+    clip: auto;
+    background: var(--jp-surface);
+    border: 2px solid var(--jp-primary);
+    border-radius: var(--jp-radius-md);
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// RESPONSIVE VISIBILITY
+// -----------------------------------------------------------------------------
+
+.hide-below-md { @include m.down(md) { display: none !important; } }
+
+.hide-above-md { @include m.up(md) { display: none !important; } }

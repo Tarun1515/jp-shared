@@ -1,0 +1,56 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.toasts {
+  position: fixed;
+  top: v.$space-4;
+  right: v.$space-4;
+  z-index: var(--jp-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  max-width: min(24rem, calc(100vw - #{v.$space-8}));
+
+  // Full width on a phone, where a floating card would crowd the content.
+  @include m.down(sm) {
+    top: auto;
+    bottom: v.$space-4;
+    left: v.$space-4;
+    right: v.$space-4;
+    max-width: none;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-3;
+  padding: v.$space-3;
+  border-radius: var(--jp-radius-lg);
+  border-left: 4px solid;
+  background: var(--jp-surface);
+  box-shadow: var(--jp-shadow-lg);
+  font-size: var(--jp-font-size-base);
+  line-height: var(--jp-line-height-snug);
+
+  &__message { flex: 1; }
+
+  &__close {
+    @include m.focus-ring;
+
+    border: 0;
+    background: none;
+    padding: 0;
+    font-size: var(--jp-font-size-xl);
+    line-height: 1;
+    color: var(--jp-text-muted);
+    cursor: pointer;
+
+    &:hover { color: var(--jp-text); }
+  }
+
+  &--success { border-left-color: var(--jp-success); }
+  &--error   { border-left-color: var(--jp-danger); }
+  &--warning { border-left-color: var(--jp-warning); }
+  &--info    { border-left-color: var(--jp-info); }
+}

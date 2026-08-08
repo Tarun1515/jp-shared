@@ -1,0 +1,530 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// AUTH — THE REGISTER PAGE
+//
+// The layout is a register page rather than the split-screen every SaaS uses:
+// a slim board across the top, then a single sheet on chalk ground, ruled, with
+// the margin column running down its left edge and the step numeral written in
+// that margin.
+//
+// It was chosen over the 50/50 split for one reason that matters more than
+// taste: it is IDENTICAL at 375px and at 1440px. The split-screen collapses to
+// "the marketing half disappears", which means the phone — the teacher's
+// primary device — gets the leftover version of the screen. Here the phone gets
+// the same page, just narrower.
+// =============================================================================
+
+.auth {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--jp-bg);
+
+  // The chalk ground carries the faintest ruling, on the same 44px rhythm as
+  // every table in the product. At 3% it is below conscious notice; what it
+  // does is stop a large empty area reading as a void, and quietly announce
+  // the rhythm the rest of the product keeps.
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--jp-rule) 0,
+    var(--jp-rule) 1px,
+    transparent 1px,
+    transparent v.$rule-row-height
+  );
+  background-position: 0 var(--jp-header-height);
+}
+
+// -----------------------------------------------------------------------------
+// THE BOARD — a slim band, not a half-screen panel
+// -----------------------------------------------------------------------------
+
+.auth__board {
+  display: flex;
+  align-items: center;
+  gap: v.$space-4;
+  height: var(--jp-header-height);
+  padding-inline: v.$space-5;
+  background: var(--jp-surface-dark);
+  color: var(--jp-text-inverse);
+}
+
+.auth__board-note {
+  margin-left: auto;
+  color: var(--jp-primary-200);
+  font-size: var(--jp-font-size-sm);
+
+  @include m.down(sm) { display: none; }
+}
+
+// -----------------------------------------------------------------------------
+// THE SHEET
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// THE BODY — one column on a phone, two from lg
+//
+// Below 1024px the panel is not merely hidden, it is not laid out at all: the
+// phone gets the whole page rather than the leftover half of a desktop one.
+//
+// From 1024px the sheet moves left and the board continues down the right. The
+// header strip and the panel are the same slate, so they read as one continuous
+// dark field wrapping the page rather than as two separate dark boxes.
+// -----------------------------------------------------------------------------
+
+.auth__body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 0;
+
+  @include m.up(lg) {
+    // Sheet side slightly wider: the form is the job, the panel is context.
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+}
+
+.auth__column {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: v.$space-8 v.$space-4 v.$space-12;
+
+  @include m.down(sm) {
+    padding: v.$space-6 v.$space-3 v.$space-8;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// THE PANEL — the board, continued
+// -----------------------------------------------------------------------------
+
+.auth__panel {
+  display: none;
+
+  @include m.up(lg) {
+    display: grid;
+    place-items: center;
+    padding: v.$space-12 v.$space-10;
+    background: var(--jp-surface-dark);
+    color: var(--jp-text-inverse);
+
+    // The ruling again, at double scale and drawn in chalk rather than ink.
+    // Same rhythm as every table in the product, so the board and the page are
+    // visibly the same system at two different sizes.
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 6%) 0,
+      rgb(255 255 255 / 6%) 1px,
+      transparent 1px,
+      transparent calc(#{v.$rule-row-height} * 2)
+    );
+  }
+}
+
+.auth__panel-inner {
+  width: 100%;
+  max-width: 30rem;
+}
+
+.auth__panel-eyebrow {
+  @include m.rule-label;
+
+  margin: 0 0 v.$space-4;
+  color: var(--jp-primary-300);
+}
+
+.auth__panel-lede {
+  @include m.display-type(var(--jp-font-size-2xl), 600);
+
+  margin: 0 0 v.$space-8;
+  color: var(--jp-text-inverse);
+  max-width: 20ch;
+}
+
+.auth__panel-roll {
+  padding: v.$space-6 0;
+  border-block: 1px solid rgb(255 255 255 / 12%);
+}
+
+.auth__panel-note {
+  margin: v.$space-6 0 0;
+  color: var(--jp-primary-200);
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-relaxed);
+  max-width: 42ch;
+}
+
+.auth__sheet {
+  width: 100%;
+  max-width: var(--jp-auth-card-width);
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+  overflow: hidden;
+
+  // The margin rule. It is the same 3px vocabulary as a table row and a nav
+  // item, so the product only ever teaches it once.
+  position: relative;
+  padding-left: var(--jp-margin-rule-width);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--jp-margin-rule-width);
+    background: var(--jp-auth-rule, var(--jp-primary-600));
+  }
+
+  // Wider sheet for the two-column signup forms.
+  &--wide { max-width: 34rem; }
+}
+
+.auth__head {
+  padding: v.$space-6 v.$space-6 v.$space-5;
+  border-bottom: var(--jp-rule-width) solid var(--jp-rule);
+
+  @include m.down(sm) { padding: v.$space-5 v.$space-4 v.$space-4; }
+}
+
+/// The numeral in the margin — the register's own way of numbering an entry.
+/// Decorative in the sense that the step is also stated in words beside it, so
+/// it is hidden from assistive technology at the call site.
+.auth__step {
+  @include m.tabular;
+
+  display: block;
+  font-size: var(--jp-font-size-xs);
+  letter-spacing: var(--jp-tracking-wide);
+  text-transform: uppercase;
+  color: var(--jp-text-muted);
+  margin-bottom: v.$space-2;
+}
+
+.auth__title {
+  @include m.display-type(var(--jp-font-size-3xl), 600);
+
+  margin: 0;
+
+  @include m.down(sm) {
+    font-size: var(--jp-font-size-2xl);
+  }
+}
+
+.auth__subtitle {
+  margin: v.$space-2 0 0;
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-relaxed);
+  max-width: 44ch;
+}
+
+.auth__content {
+  padding: v.$space-6;
+
+  @include m.down(sm) { padding: v.$space-5 v.$space-4; }
+}
+
+.auth__foot {
+  padding: v.$space-4 v.$space-6;
+  border-top: var(--jp-rule-width) solid var(--jp-rule);
+  background: var(--jp-surface-alt);
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+  text-align: center;
+
+  @include m.down(sm) { padding: v.$space-4; }
+}
+
+/// Anything sitting under the sheet — "Back to sign in", legal, support.
+.auth__aside {
+  width: 100%;
+  max-width: var(--jp-auth-card-width);
+  margin-top: v.$space-4;
+  text-align: center;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+
+  .auth__sheet--wide + & { max-width: 34rem; }
+}
+
+// -----------------------------------------------------------------------------
+// FORM-LEVEL ERROR
+//
+// Above the submit, never in a toast: a credential failure belongs to the form
+// the user is looking at. Field errors sit next to their field; only a system
+// failure earns a toast. Never all three at once.
+// -----------------------------------------------------------------------------
+
+.auth__alert {
+  @include m.margin-rule(var(--jp-danger));
+
+  padding: v.$space-3 v.$space-3 v.$space-3 v.$space-4;
+  margin-bottom: v.$space-4;
+  background: var(--jp-danger-soft);
+  border-radius: var(--jp-radius-sm);
+  color: var(--jp-danger-text);
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-snug);
+}
+
+.auth__notice {
+  @include m.margin-rule(var(--jp-info));
+
+  padding: v.$space-3 v.$space-3 v.$space-3 v.$space-4;
+  margin-bottom: v.$space-4;
+  background: var(--jp-info-soft);
+  border-radius: var(--jp-radius-sm);
+  color: var(--jp-info-text);
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-snug);
+}
+
+// -----------------------------------------------------------------------------
+// SEGMENTED CHOICE — "I am a school" / "I am a teacher"
+//
+// Radios, not tabs. The choice changes what the form collects and it is part of
+// what gets submitted, so it has to be in the form, focusable, and announced as
+// a choice rather than as navigation.
+// -----------------------------------------------------------------------------
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: v.$space-2;
+  margin-bottom: v.$space-5;
+  border: 0;
+  padding: 0;
+}
+
+.segmented__legend {
+  @include m.visually-hidden;
+}
+
+.segmented__option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: v.$space-3 v.$space-4;
+  border: 1px solid var(--jp-border-strong);
+  border-radius: var(--jp-radius-md);
+  background: var(--jp-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--jp-transition-fast) var(--jp-easing),
+    background-color var(--jp-transition-fast) var(--jp-easing);
+
+  &:hover { border-color: var(--jp-primary-300); }
+
+  input {
+    @include m.visually-hidden;
+  }
+
+  &__label {
+    font-weight: var(--jp-font-weight-semibold);
+    font-size: var(--jp-font-size-base);
+  }
+
+  &__hint {
+    font-size: var(--jp-font-size-xs);
+    color: var(--jp-text-muted);
+    line-height: var(--jp-line-height-snug);
+  }
+
+  // Checked state is drawn on the wrapper, driven by the real radio, so
+  // keyboard, screen reader and pointer all agree.
+  &:has(input:checked) {
+    border-color: var(--jp-primary-600);
+    background: var(--jp-primary-50);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--jp-primary);
+    outline-offset: 2px;
+  }
+
+  @include m.reduced-motion { transition: none; }
+}
+
+// -----------------------------------------------------------------------------
+// PASSWORD FIELD
+// -----------------------------------------------------------------------------
+
+.password {
+  position: relative;
+
+  .form-control { padding-right: 3.25rem; }
+}
+
+.password__toggle {
+  @include m.focus-ring;
+
+  position: absolute;
+  right: v.$space-1;
+  top: 1.75rem;               // clears the label
+  height: 2.25rem;
+  padding-inline: v.$space-2;
+  border: 0;
+  border-radius: var(--jp-radius-sm);
+  background: transparent;
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-xs);
+  font-weight: var(--jp-font-weight-medium);
+  cursor: pointer;
+
+  &:hover { color: var(--jp-text); }
+}
+
+/// Strength meter. Four cells, mark-sheet style — appears only once the user
+/// has typed something, so an untouched form is not already judging them.
+.strength {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  margin-top: v.$space-2;
+}
+
+.strength__cells {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  flex: 1;
+}
+
+.strength__cell {
+  height: 4px;
+  border-radius: 1px;
+  background: var(--jp-neutral-200);
+  transition: background-color var(--jp-transition-base) var(--jp-easing);
+
+  &--on { background: var(--jp-meter, var(--jp-warning)); }
+
+  @include m.reduced-motion { transition: none; }
+}
+
+.strength__label {
+  @include m.tabular;
+
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+// -----------------------------------------------------------------------------
+// OTP
+// -----------------------------------------------------------------------------
+
+.otp {
+  display: flex;
+  gap: v.$space-2;
+  justify-content: space-between;
+
+  @include m.down(sm) { gap: v.$space-1; }
+}
+
+.otp__box {
+  @include m.tabular;
+
+  width: 100%;
+  max-width: 3.25rem;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  text-align: center;
+  font-size: var(--jp-font-size-xl);
+  border: 1px solid var(--jp-border-strong);
+  border-radius: var(--jp-radius-md);
+  background: var(--jp-surface);
+  color: var(--jp-text);
+  transition:
+    border-color var(--jp-transition-fast) var(--jp-easing),
+    box-shadow var(--jp-transition-fast) var(--jp-easing);
+
+  &:focus {
+    outline: none;
+    border-color: var(--jp-primary);
+    box-shadow: var(--jp-focus-ring);
+  }
+
+  &[aria-invalid='true'] { border-color: var(--jp-danger); }
+
+  @include m.reduced-motion { transition: none; }
+}
+
+/// A quiet line of consequence copy, directly above the submit. Sets the
+/// expectation before the button is pressed rather than after.
+.auth__note {
+  margin: v.$space-4 0;
+  padding-top: v.$space-3;
+  border-top: var(--jp-rule-width) solid var(--jp-rule);
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+  line-height: var(--jp-line-height-snug);
+}
+
+.otp__resend {
+  margin: v.$space-4 0 0;
+  text-align: center;
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text-muted);
+}
+
+/// Vertical stack of full-width actions.
+.stack-4 {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-3;
+  margin-top: v.$space-5;
+}
+
+// -----------------------------------------------------------------------------
+// HOST DISPLAY
+//
+// Custom elements are inline by default, so a field wrapper inside one collapses
+// its margins and the next control ends up welded to it. Declared here rather
+// than in each component's stylesheet because it is the same fact every time.
+// -----------------------------------------------------------------------------
+
+ui-password-field,
+ui-otp-input {
+  display: block;
+}
+
+ui-password-field + ui-password-field,
+ui-password-field + button,
+ui-otp-input + button {
+  margin-top: v.$space-4;
+}
+
+ui-roll { display: inline-flex; }
+
+// -----------------------------------------------------------------------------
+// WAYFINDING NOTICE
+//
+// Someone who signed in successfully with another app's account. Not an error —
+// their credentials were correct — so it does not take the error colour. It is
+// a signpost, and it carries the link that makes it actionable.
+// -----------------------------------------------------------------------------
+
+.auth__alert--wayfinding {
+  background: var(--jp-info-soft);
+  color: var(--jp-info-text);
+
+  &::before { background: var(--jp-info); }
+}
+
+.auth__alert-title {
+  margin: 0 0 v.$space-1;
+  font-weight: var(--jp-font-weight-semibold);
+}
+
+.auth__alert-action {
+  color: inherit;
+  font-weight: var(--jp-font-weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

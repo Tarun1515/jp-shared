@@ -1,0 +1,69 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--jp-z-modal);
+  display: grid;
+  place-items: center;
+  padding: v.$space-4;
+  background: rgb(15 23 42 / 45%);
+  overflow-y: auto;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  // Never taller than the viewport; the body scrolls instead, so the header
+  // and footer buttons stay reachable.
+  max-height: calc(100dvh - #{v.$space-8});
+  background: var(--jp-surface);
+  border-radius: var(--jp-radius-xl);
+  box-shadow: var(--jp-shadow-xl);
+
+  &--sm { max-width: 24rem; }
+  &--md { max-width: 32rem; }
+  &--lg { max-width: 48rem; }
+  &--xl { max-width: 64rem; }
+
+  &__header {
+    @include m.flex-between(center, v.$space-3);
+
+    padding: v.$space-4 v.$space-5;
+    border-bottom: 1px solid var(--jp-border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--jp-font-size-lg);
+    font-weight: var(--jp-font-weight-semibold);
+  }
+
+  &__body {
+    @include m.custom-scrollbar;
+
+    padding: v.$space-5;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: v.$space-2;
+    padding: v.$space-3 v.$space-5;
+    border-top: 1px solid var(--jp-border);
+    background: var(--jp-surface-alt);
+    flex-shrink: 0;
+
+    &:empty { display: none; }
+
+    @include m.down(sm) {
+      flex-direction: column-reverse;
+    }
+  }
+}

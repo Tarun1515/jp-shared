@@ -1,0 +1,75 @@
+<div class="field">
+  @if (label(); as text) {
+    <span class="field__label">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </span>
+  }
+
+  <!--
+    A <label> wrapping a visually hidden <input type="file">. That keeps the
+    native keyboard behaviour and the OS file dialog, which a div with a click
+    handler would throw away.
+  -->
+  <label
+    class="upload"
+    [class.upload--dragging]="isDragging()"
+    [class.upload--disabled]="disabled()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <input
+      type="file"
+      class="visually-hidden"
+      [accept]="accept()"
+      [multiple]="multiple()"
+      [disabled]="disabled()"
+      (change)="onPick($event)"
+    />
+
+    <span class="upload__icon" aria-hidden="true">⬆</span>
+
+    <span class="upload__prompt">
+      <strong>Choose a file</strong> or drag it here
+    </span>
+
+    <span class="upload__hint">
+      {{ accept() }} &middot; up to {{ maxSizeKb() }} KB
+    </span>
+  </label>
+
+  @if (selected().length > 0) {
+    <ul class="upload__list">
+      @for (entry of selected(); track entry.file.name; let i = $index) {
+        <li class="upload__item" [class.upload__item--invalid]="entry.error">
+          <span class="upload__name text-truncate">{{ entry.file.name }}</span>
+          <span class="upload__size">{{ entry.sizeKb }} KB</span>
+
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            [attr.aria-label]="'Remove ' + entry.file.name"
+            (click)="removeAt(i)"
+          >
+            &times;
+          </button>
+
+          @if (entry.error; as message) {
+            <span class="upload__error" role="alert">{{ message }}</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (helper(); as text) {
+    <span class="field__helper">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" role="alert">{{ text }}</span>
+  }
+</div>

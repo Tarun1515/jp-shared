@@ -1,0 +1,117 @@
+<div class="table-wrap">
+  <table class="table" [class.table--striped]="striped()" [class.table--hover]="hoverable()"
+         [class.table--compact]="compact()">
+    @if (caption(); as text) {
+      <caption class="visually-hidden">{{ text }}</caption>
+    }
+
+    <thead>
+      <tr>
+        @for (column of columns(); track column.key) {
+          <th
+            scope="col"
+            [style.width]="column.width"
+            [style.text-align]="column.align ?? 'left'"
+            [attr.aria-sort]="ariaSort(column)"
+          >
+            @if (column.sortable) {
+              <button type="button" class="table__sort" (click)="onSort(column)">
+                {{ column.header }}
+                <span class="table__sort__indicator" aria-hidden="true">
+                  @if (sortBy() === column.key) {
+                    {{ sortDirection() === 'ASC' ? '▲' : '▼' }}
+                  } @else {
+                    ⇅
+                  }
+                </span>
+              </button>
+            } @else {
+              {{ column.header }}
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+
+    <tbody>
+      @if (loading()) {
+        <tr>
+          <td [attr.colspan]="columns().length" class="table__loading">
+            <span role="status">Loading…</span>
+          </td>
+        </tr>
+      } @else if (isEmpty()) {
+        <tr>
+          <td [attr.colspan]="columns().length" class="table__empty">
+            <p class="table__empty-title">{{ emptyTitle() }}</p>
+            @if (emptyMessage(); as text) {
+              <p class="table__empty-message">{{ text }}</p>
+            }
+          </td>
+        </tr>
+      } @else {
+        @for (row of rows(); track $index; let i = $index) {
+          <tr>
+            @if (rowTemplate(); as template) {
+              <!-- Consumer renders its own <td> cells. -->
+              <ng-container [ngTemplateOutlet]="template"
+                            [ngTemplateOutletContext]="{ $implicit: row, index: i }" />
+            } @else {
+              @for (column of columns(); track column.key) {
+                <td [style.text-align]="column.align ?? 'left'">
+                  {{ cellValue(column, row) }}
+                </td>
+              }
+            }
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (showPager() && totalPages() > 1) {
+    <nav class="table-pager" aria-label="Pagination">
+      <span class="table-pager__summary">
+        {{ firstRowIndex() }}–{{ lastRowIndex() }} of {{ totalRecords() }}
+      </span>
+
+      <div class="table-pager__controls">
+        <button
+          type="button"
+          class="table-pager__page"
+          aria-label="Previous page"
+          [disabled]="pageNumber() <= 1"
+          (click)="goToPage(pageNumber() - 1)"
+        >
+          ‹
+        </button>
+
+        @for (page of pageWindow(); track $index) {
+          @if (page === -1) {
+            <span class="table-pager__gap" aria-hidden="true">…</span>
+          } @else {
+            <button
+              type="button"
+              class="table-pager__page"
+              [attr.aria-label]="'Page ' + page"
+              [attr.aria-current]="page === pageNumber() ? 'page' : null"
+              (click)="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        }
+
+        <button
+          type="button"
+          class="table-pager__page"
+          aria-label="Next page"
+          [disabled]="pageNumber() >= totalPages()"
+          (click)="goToPage(pageNumber() + 1)"
+        >
+          ›
+        </button>
+      </div>
+    </nav>
+  }
+</div>

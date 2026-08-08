@@ -1,0 +1,92 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:host {
+  display: block;
+}
+
+.upload {
+  @include m.flex-column(v.$space-1);
+
+  align-items: center;
+  padding: v.$space-6;
+  border: 2px dashed var(--jp-border-strong);
+  border-radius: var(--jp-radius-lg);
+  background: var(--jp-surface-alt);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--jp-transition-fast) var(--jp-easing),
+    background-color var(--jp-transition-fast) var(--jp-easing);
+
+  &:hover:not(.upload--disabled) {
+    border-color: var(--jp-primary);
+    background: var(--jp-primary-soft);
+  }
+
+  // The real input is visually hidden, so the drop zone has to carry the
+  // focus ring itself or keyboard users get no indication at all.
+  &:focus-within {
+    outline: 2px solid var(--jp-primary);
+    outline-offset: 2px;
+  }
+
+  &--dragging {
+    border-color: var(--jp-primary);
+    background: var(--jp-primary-soft);
+  }
+
+  &--disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &__icon {
+    font-size: var(--jp-font-size-xl);
+    color: var(--jp-text-muted);
+  }
+
+  &__prompt { font-size: var(--jp-font-size-base); }
+
+  &__hint {
+    font-size: var(--jp-font-size-xs);
+    color: var(--jp-text-muted);
+  }
+
+  &__list {
+    list-style: none;
+    margin: v.$space-3 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    flex-wrap: wrap;
+    padding: v.$space-2 v.$space-3;
+    border: 1px solid var(--jp-border);
+    border-radius: var(--jp-radius-md);
+    background: var(--jp-surface);
+    font-size: var(--jp-font-size-sm);
+
+    &--invalid { border-color: var(--jp-danger); }
+  }
+
+  &__name { flex: 1; min-width: 0; }
+
+  &__size {
+    color: var(--jp-text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &__error {
+    flex-basis: 100%;
+    color: var(--jp-danger);
+    font-size: var(--jp-font-size-xs);
+  }
+}

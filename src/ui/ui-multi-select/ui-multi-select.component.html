@@ -1,0 +1,114 @@
+<div class="field multi" (keydown.escape)="close()">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  <!--
+    A button, not a div: it has to be reachable by Tab and operable by Enter
+    and Space without re-implementing any of that by hand.
+  -->
+  <button
+    type="button"
+    class="form-control multi__control"
+    [id]="controlId"
+    [disabled]="isDisabled() || loading()"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-haspopup]="'listbox'"
+    [attr.aria-invalid]="hasError()"
+    [attr.aria-describedby]="describedBy()"
+    (click)="toggleOpen()"
+  >
+    <span class="multi__chips">
+      @for (option of selectedOptions(); track option.value) {
+        <span class="multi__chip">
+          {{ option.label }}
+          <span
+            class="multi__chip-remove"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Remove ' + option.label"
+            (click)="remove(option.value, $event)"
+            (keydown.enter)="remove(option.value, $event)"
+            (keydown.space)="remove(option.value, $event)"
+          >&times;</span>
+        </span>
+      } @empty {
+        <span class="multi__placeholder">
+          {{ loading() ? 'Loading…' : (placeholder() || 'Select…') }}
+        </span>
+      }
+    </span>
+
+    @if (selectedOptions().length > 0) {
+      <span
+        class="multi__clear"
+        role="button"
+        tabindex="0"
+        aria-label="Clear all selections"
+        (click)="clearAll($event)"
+        (keydown.enter)="clearAll($event)"
+      >&times;</span>
+    }
+  </button>
+
+  @if (isOpen()) {
+    <div class="multi__panel" role="listbox" aria-multiselectable="true">
+      @if (searchable()) {
+        <input
+          type="search"
+          class="form-control multi__search"
+          placeholder="Search…"
+          [value]="search()"
+          (input)="onSearch($event)"
+        />
+      }
+
+      <div class="multi__options">
+        @for (option of filteredOptions(); track option.value) {
+          <div
+            class="multi__option"
+            role="option"
+            [attr.aria-selected]="isSelected(option.value)"
+            [class.multi__option--selected]="isSelected(option.value)"
+            [class.multi__option--disabled]="
+              (option.disabled ?? false) || (atLimit() && !isSelected(option.value))
+            "
+            (click)="toggleOption(option.value)"
+            (keydown.enter)="toggleOption(option.value)"
+            tabindex="0"
+          >
+            <input
+              type="checkbox"
+              class="form-check__input"
+              [checked]="isSelected(option.value)"
+              tabindex="-1"
+              aria-hidden="true"
+            />
+            <span>{{ option.label }}</span>
+          </div>
+        } @empty {
+          <p class="multi__no-results">No matches for “{{ search() }}”.</p>
+        }
+      </div>
+
+      @if (atLimit()) {
+        <p class="multi__limit" role="status">
+          You can select up to {{ maxSelections() }}. Remove one to choose another.
+        </p>
+      }
+    </div>
+  }
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>

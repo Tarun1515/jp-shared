@@ -1,0 +1,37 @@
+<div class="field">
+  <!--
+    The <label> wraps nothing and uses `for` instead, so a link inside the
+    projected text stays clickable. Nested inside a label, clicking the link
+    would toggle the checkbox rather than follow the href.
+  -->
+  <div class="form-check">
+    <input
+      class="form-check__input"
+      [id]="controlId"
+      [type]="asRadio() ? 'radio' : 'checkbox'"
+      [checked]="value() ?? false"
+      [disabled]="isDisabled()"
+      [required]="required()"
+      [attr.name]="name()"
+      [attr.aria-invalid]="hasError()"
+      [attr.aria-describedby]="describedBy()"
+      (change)="onToggle($event)"
+      (blur)="markTouched()"
+    />
+
+    <label class="form-check__label" [for]="controlId">
+      <ng-content />
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  </div>
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>

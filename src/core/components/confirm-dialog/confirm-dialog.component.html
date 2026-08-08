@@ -1,0 +1,51 @@
+@if (confirm.pending(); as dialog) {
+  <!--
+    Escape is bound on the backdrop and the panel both. Bound only on the
+    panel, it would stop working the moment focus moved to a button inside it.
+  -->
+  <div
+    class="dialog-backdrop"
+    tabindex="-1"
+    (click)="confirm.respond(false)"
+    (keydown.escape)="confirm.respond(false)"
+  >
+    <!--
+      stopPropagation so a click inside the panel is not also read as a click
+      on the backdrop, which would dismiss the dialog the user is reading.
+    -->
+    <div
+      class="dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-message"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="confirm.respond(false)"
+    >
+      <h2 class="dialog__title" id="confirm-dialog-title">{{ dialog.title }}</h2>
+      <p class="dialog__message" id="confirm-dialog-message">{{ dialog.message }}</p>
+
+      <div class="btn-group btn-group--end">
+        <button type="button" class="btn btn--ghost" (click)="confirm.respond(false)">
+          {{ dialog.cancelText ?? 'Cancel' }}
+        </button>
+
+        <!--
+          cdkFocusInitial equivalent: autofocus lands on the confirming action.
+          Destructive dialogs still default here rather than on Cancel, because
+          Escape and the backdrop already give a one-key way out.
+        -->
+        <button
+          type="button"
+          class="btn"
+          [class.btn--danger]="dialog.danger"
+          [class.btn--primary]="!dialog.danger"
+          autofocus
+          (click)="confirm.respond(true)"
+        >
+          {{ dialog.confirmText ?? 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

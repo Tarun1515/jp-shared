@@ -1,0 +1,25 @@
+@use 'variables' as v;
+
+:host {
+  display: block;
+}
+
+.datepicker__input {
+  // Safari on iOS stretches a date input to fill whatever space it is given
+  // and ignores width; this pins it back to the field.
+  min-height: 2.5rem;
+
+  // The calendar glyph is a browser-drawn control, not our markup, so it can
+  // only be nudged rather than restyled.
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+
+    &:hover { opacity: 1; }
+  }
+
+  &:disabled::-webkit-calendar-picker-indicator {
+    cursor: not-allowed;
+    opacity: 0.3;
+  }
+}

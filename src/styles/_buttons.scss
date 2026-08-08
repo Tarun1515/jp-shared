@@ -1,0 +1,221 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// BUTTONS
+//
+// One base class plus modifiers. `.btn` alone is the secondary/outline look, so
+// a button that forgets its variant still looks deliberate.
+// =============================================================================
+
+.btn {
+  @include m.flex-center;
+  @include m.focus-ring;
+  @include m.disabled;
+
+  gap: v.$space-2;
+
+  // Sits on the register's row rhythm, and is a comfortable thumb target at
+  // 375px without a separate mobile size.
+  min-height: v.$rule-row-height;
+  padding: v.$space-2 v.$space-4;
+  border: 1px solid var(--jp-border-strong);
+  border-radius: var(--jp-radius-md);
+  background: var(--jp-surface);
+  color: var(--jp-text);
+  font-family: inherit;
+  font-size: var(--jp-font-size-base);
+  font-weight: var(--jp-font-weight-medium);
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background-color var(--jp-transition-fast) var(--jp-easing),
+    border-color var(--jp-transition-fast) var(--jp-easing),
+    color var(--jp-transition-fast) var(--jp-easing),
+    box-shadow var(--jp-transition-fast) var(--jp-easing);
+
+  &:hover { background: var(--jp-surface-alt); }
+
+  &:active { transform: translateY(0.5px); }
+
+  // A button rendered as <a> must not pick up the global link underline.
+  &:hover,
+  &:focus { text-decoration: none; }
+
+  @include m.reduced-motion {
+    transition: none;
+
+    &:active { transform: none; }
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// VARIANTS
+// -----------------------------------------------------------------------------
+
+.btn--primary {
+  background: var(--jp-primary);
+  border-color: var(--jp-primary);
+  color: var(--jp-text-inverse);
+
+  &:hover {
+    background: var(--jp-primary-hover);
+    border-color: var(--jp-primary-hover);
+  }
+}
+
+.btn--secondary {
+  background: var(--jp-primary-soft);
+  border-color: var(--jp-primary-200);
+  color: var(--jp-primary-700);
+
+  &:hover {
+    background: var(--jp-primary-100);
+    border-color: var(--jp-primary-300);
+  }
+}
+
+/// Light-on-dark. For actions that live on the board — the slate header,
+/// sidebar, or the dark panel on the auth screen.
+.btn--on-dark {
+  background: transparent;
+  border-color: rgb(255 255 255 / 22%);
+  color: var(--jp-text-inverse);
+
+  &:hover {
+    background: rgb(255 255 255 / 10%);
+    border-color: rgb(255 255 255 / 34%);
+  }
+
+  &:focus-visible { outline-color: var(--jp-primary-200); }
+}
+
+.btn--danger {
+  background: var(--jp-danger);
+  border-color: var(--jp-danger);
+  color: var(--jp-text-inverse);
+
+  &:hover {
+    background: var(--jp-danger-hover);
+    border-color: var(--jp-danger-hover);
+  }
+
+  // Destructive actions get their own focus colour, so the ring reinforces
+  // what the button does rather than contradicting it.
+  &:focus-visible { outline-color: var(--jp-danger); }
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--jp-text-muted);
+
+  &:hover {
+    background: var(--jp-surface-alt);
+    color: var(--jp-text);
+  }
+}
+
+.btn--link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--jp-primary);
+  padding-inline: v.$space-1;
+
+  &:hover {
+    background: transparent;
+    text-decoration: underline;
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+// SIZES
+// -----------------------------------------------------------------------------
+
+.btn--sm {
+  min-height: 2rem;
+  padding: v.$space-1 v.$space-3;
+  font-size: var(--jp-font-size-sm);
+}
+
+.btn--lg {
+  min-height: 3rem;
+  padding: v.$space-3 v.$space-6;
+  font-size: var(--jp-font-size-md);
+}
+
+/// Square button holding a single glyph. Always needs an aria-label.
+.btn--icon {
+  padding: v.$space-2;
+  aspect-ratio: 1;
+  border-radius: var(--jp-radius-md);
+}
+
+.btn--block { width: 100%; }
+
+
+// -----------------------------------------------------------------------------
+// STATES
+// -----------------------------------------------------------------------------
+
+/// Busy button. Keeps its label so the layout does not jump, dims it, and
+/// spins a ring in its place.
+.btn--loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentcolor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 0.65s linear infinite;
+    color: var(--jp-text-inverse);
+  }
+
+  &.btn--ghost::after,
+  &.btn--link::after,
+  &:not(.btn--primary):not(.btn--danger)::after { color: var(--jp-text); }
+
+  @include m.reduced-motion {
+    &::after { animation-duration: 2s; }
+  }
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+// -----------------------------------------------------------------------------
+// GROUPING
+// -----------------------------------------------------------------------------
+
+/// Row of buttons, right-aligned. The standard footer for a form or dialog.
+.btn-group {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+
+  &--end { justify-content: flex-end; }
+
+  &--between { justify-content: space-between; }
+
+  // Stack full-width on a phone: side-by-side buttons below ~480px end up
+  // too narrow to read or to hit reliably.
+  @include m.down(sm) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .btn { width: 100%; }
+  }
+}

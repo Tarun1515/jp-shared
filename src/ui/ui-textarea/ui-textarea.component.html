@@ -1,0 +1,46 @@
+<div class="field">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  <textarea
+    class="form-control"
+    [id]="controlId"
+    [rows]="rows()"
+    [value]="value() ?? ''"
+    [placeholder]="placeholder()"
+    [disabled]="isDisabled()"
+    [readonly]="readonly()"
+    [required]="required()"
+    [attr.maxlength]="maxlength()"
+    [attr.aria-invalid]="hasError()"
+    [attr.aria-describedby]="describedBy()"
+    (input)="onInput($event)"
+    (blur)="markTouched()"
+  ></textarea>
+
+  <div class="textarea__footer">
+    <span class="textarea__messages">
+      @if (helper(); as text) {
+        <span class="field__helper" [id]="helperId">{{ text }}</span>
+      }
+
+      @if (error(); as text) {
+        <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+      }
+    </span>
+
+    @if (showCount() && maxlength(); as max) {
+      <!-- aria-hidden: the count is a visual aid, and announcing it on every
+           keystroke would make the field unusable with a screen reader. -->
+      <span class="textarea__count" [class.textarea__count--warn]="nearLimit()" aria-hidden="true">
+        {{ charCount() }} / {{ max }}
+      </span>
+    }
+  </div>
+</div>

@@ -1,0 +1,190 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// TYPOGRAPHY — global element styles and the heading scale.
+//
+// Three faces, three jobs (see _variables.scss). The rule that keeps the
+// display face characterful rather than shouty is that it appears in exactly
+// three roles: the wordmark, page/section titles, and large figures. Body copy
+// and every form label is Public Sans; every id, date and code is Plex Mono.
+// =============================================================================
+
+body {
+  font-family: var(--jp-font-family);
+  font-size: var(--jp-font-size-base);
+  line-height: var(--jp-line-height-normal);
+  color: var(--jp-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // Public Sans ships proportional figures by default, which makes a column of
+  // numbers wobble. Tabular everywhere is the register's habit.
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--jp-font-family-display);
+  font-weight: var(--jp-font-weight-semibold);
+  line-height: var(--jp-line-height-tight);
+  letter-spacing: var(--jp-tracking-display);
+  color: var(--jp-text);
+}
+
+h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--jp-font-weight-semibold);
+  line-height: var(--jp-line-height-snug);
+  letter-spacing: var(--jp-tracking-tight);
+  color: var(--jp-text);
+}
+
+h1 { font-size: var(--jp-font-size-2xl); }
+h2 { font-size: var(--jp-font-size-xl); }
+h3 { font-size: var(--jp-font-size-lg); }
+h4 { font-size: var(--jp-font-size-md); }
+h5 { font-size: var(--jp-font-size-base); }
+
+// The micro-heading that sits on a rule. Mono and tracked out, because it is a
+// caption in the register's hand rather than a heading in the document's.
+h6 {
+  @include m.rule-label;
+}
+
+p {
+  margin: 0 0 v.$space-3;
+  line-height: var(--jp-line-height-relaxed);
+
+  &:last-child { margin-bottom: 0; }
+}
+
+a {
+  color: var(--jp-primary);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+
+  &:hover { text-decoration: underline; }
+
+  @include m.focus-ring;
+}
+
+small { font-size: var(--jp-font-size-xs); }
+
+code, pre, kbd {
+  font-family: var(--jp-font-family-mono);
+  font-size: 0.9em;
+}
+
+pre {
+  @include m.scroll-x;
+
+  padding: v.$space-4;
+  background: var(--jp-surface-sunken);
+  border-radius: var(--jp-radius-md);
+}
+
+hr {
+  border: 0;
+  border-top: var(--jp-rule-width) solid var(--jp-rule);
+  margin: v.$space-6 0;
+}
+
+
+// -----------------------------------------------------------------------------
+// TEXT UTILITIES — semantic roles, not one-off sizes.
+// -----------------------------------------------------------------------------
+
+.text-display {
+  @include m.display-type(var(--jp-font-size-3xl), 600);
+}
+
+.text-page-title {
+  @include m.display-type(var(--jp-font-size-2xl), 600);
+}
+
+.text-section-title {
+  font-size: var(--jp-font-size-lg);
+  font-weight: var(--jp-font-weight-semibold);
+  letter-spacing: var(--jp-tracking-tight);
+}
+
+.text-body { font-size: var(--jp-font-size-base); }
+
+.text-muted { color: var(--jp-text-muted); }
+
+.text-subtle { color: var(--jp-text-subtle); }
+
+/// The register's caption hand — column heads, section markers, meta rows.
+.text-rule-label {
+  @include m.rule-label;
+}
+
+/// Ids, dates, PRT/TGT/PGT codes, anything that lines up in a column.
+.text-mono {
+  @include m.tabular;
+}
+
+/// Form field label. Also applied by _forms.scss to bare <label> elements.
+.text-label {
+  font-size: var(--jp-font-size-sm);
+  font-weight: var(--jp-font-weight-medium);
+  color: var(--jp-text);
+}
+
+/// Guidance under a field.
+.text-helper {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+  line-height: var(--jp-line-height-snug);
+}
+
+/// Validation message. Carries an icon-free colour cue only, so it must always
+/// accompany an aria-describedby link on the input — colour alone is not a
+/// usable signal for everyone.
+.text-error {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-danger-text);
+  line-height: var(--jp-line-height-snug);
+}
+
+/// A large figure on a dashboard tile.
+.text-metric {
+  @include m.display-type(var(--jp-font-size-3xl), 600);
+
+  line-height: 1;
+}
+
+.text-truncate { @include m.truncate; }
+
+.text-clamp-2 { @include m.line-clamp(2); }
+
+.text-clamp-3 { @include m.line-clamp(3); }
+
+
+// -----------------------------------------------------------------------------
+// THE WORDMARK
+//
+// Set in the display face at a heavier weight with the two words differentiated
+// by weight rather than by colour, so it survives on the board (light on slate)
+// and on paper (ink on chalk) without a second version.
+// -----------------------------------------------------------------------------
+
+.wordmark {
+  @include m.display-type(var(--jp-font-size-lg), 700);
+
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  white-space: nowrap;
+
+  &__mark {
+    font-weight: var(--jp-font-weight-bold);
+  }
+
+  &__rest {
+    font-weight: var(--jp-font-weight-normal);
+    opacity: 0.75;
+  }
+}

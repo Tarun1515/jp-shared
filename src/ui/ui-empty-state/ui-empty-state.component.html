@@ -1,0 +1,18 @@
+<div class="empty" [class.empty--compact]="compact()">
+  <span class="empty__icon" aria-hidden="true">{{ icon() }}</span>
+
+  <p class="empty__title">{{ title() }}</p>
+
+  @if (message(); as text) {
+    <p class="empty__message">{{ text }}</p>
+  }
+
+  @if (actionLabel(); as label) {
+    <button type="button" class="btn btn--primary empty__action" (click)="action.emit()">
+      {{ label }}
+    </button>
+  }
+
+  <!-- Extra content, for anything richer than a single button. -->
+  <ng-content />
+</div>

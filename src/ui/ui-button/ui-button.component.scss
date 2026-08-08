@@ -1,0 +1,10 @@
+// .btn and its variants live in styles/_buttons.scss so plain markup and this
+// component render identically. Only host layout belongs here.
+:host {
+  display: inline-flex;
+}
+
+:host([block]) {
+  display: flex;
+  width: 100%;
+}

@@ -1,0 +1,53 @@
+<div class="field">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  <select
+    class="form-control"
+    [id]="controlId"
+    [disabled]="isDisabled() || loading()"
+    [required]="required()"
+    [attr.aria-invalid]="hasError()"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-busy]="loading() ? 'true' : null"
+    (change)="onSelect($event)"
+    (blur)="markTouched()"
+  >
+    @if (loading()) {
+      <option value="">Loading…</option>
+    } @else {
+      <!--
+        The empty option is kept even on a required field so the control can
+        start with nothing chosen. Without it the browser preselects the first
+        real option, and the user "chooses" a value they never looked at.
+      -->
+      <option value="" [selected]="value() === null || value() === undefined">
+        {{ placeholderOption() }}
+      </option>
+
+      @for (option of options(); track option.value) {
+        <option
+          [value]="option.value"
+          [disabled]="option.disabled ?? false"
+          [selected]="value() === option.value"
+        >
+          {{ option.label }}
+        </option>
+      }
+    }
+  </select>
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>

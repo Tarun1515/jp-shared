@@ -1,0 +1,42 @@
+// =============================================================================
+// THEME — the single entry point for global styles.
+//
+// ONLY src/styles.scss should `@use` this file.
+//
+// A component must never `@use 'theme'`: everything below emits CSS, and a
+// component stylesheet that pulled it in would duplicate the entire design
+// system into its own scoped bundle. Components `@use 'variables'` and
+// `@use 'mixins'` instead — both of which emit nothing.
+//
+// Load order sets the cascade. Sass emits each module's CSS in the order it is
+// first loaded here: reset and layout, then base typography, then components,
+// then utilities last so a utility class wins against a component rule of the
+// same specificity.
+// =============================================================================
+
+// Sass requires every @use to come before any other rule, so the token mixin
+// is invoked at the bottom of this file rather than the top. That is safe:
+// custom properties are resolved at computed-value time, not by source order,
+// so a :root block emitted last still applies to everything above it.
+@use 'variables';
+
+// 1. Reset, page scaffolding, app shell.
+@use 'layout';
+
+// 2. Base typography.
+@use 'typography';
+
+// 3. Components.
+@use 'buttons';
+@use 'forms';
+@use 'cards';
+@use 'tables';
+@use 'badges';
+@use 'auth';
+@use 'pipeline';
+
+// 4. Utilities — last, so they override.
+@use 'utilities';
+
+// Runtime tokens: every --jp-* custom property.
+@include variables.root-variables;

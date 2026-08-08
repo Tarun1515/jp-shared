@@ -1,0 +1,122 @@
+<div class="shell">
+  <header class="shell__header">
+    <button
+      type="button"
+      class="btn btn--ghost btn--icon shell__menu-toggle"
+      [attr.aria-expanded]="navOpen()"
+      aria-controls="shell-navigation"
+      aria-label="Toggle navigation"
+      (click)="toggleNav()"
+    >
+      ☰
+    </button>
+
+    <span class="wordmark shell__brand">
+      <span class="wordmark__mark">Staffroom</span>
+      <span class="wordmark__rest">India</span>
+    </span>
+
+    <span class="badge badge--on-dark hide-below-md">{{ sectionTitle() }}</span>
+
+    <span class="shell__spacer"></span>
+
+    <!--
+      The person's own words, not the system's key. This used to print the raw
+      user uid, which is meaningless to the reader and is an identifier we have
+      no reason to put on screen at all.
+    -->
+    @if (accountLabel(); as label) {
+      <span class="shell__user text-truncate hide-below-md">{{ label }}</span>
+    }
+
+    <button type="button" class="btn btn--on-dark btn--sm" (click)="logout()">Sign out</button>
+  </header>
+
+  <div class="shell__body">
+    <!--
+      Scrim sits behind the drawer on small screens. It is a <button> rather
+      than a <div> so it is reachable and dismissible by keyboard, not just by
+      pointer.
+    -->
+    @if (navOpen()) {
+      <button
+        type="button"
+        class="shell__scrim hide-above-md"
+        aria-label="Close navigation"
+        (click)="closeNav()"
+      ></button>
+    }
+
+    <nav
+      class="shell__sidebar"
+      [class.shell__sidebar--open]="navOpen()"
+      id="shell-navigation"
+      aria-label="Section navigation"
+    >
+      <!--
+        A real close control. The drawer previously relied on tapping the scrim,
+        which is undiscoverable — there is nothing on screen saying the dark
+        area is a target, and a keyboard user had no way out at all.
+      -->
+      @if (navOpen()) {
+        <button
+          type="button"
+          class="shell__nav-close hide-above-md"
+          (click)="closeNav()"
+        >
+          <span aria-hidden="true">✕</span>
+          Close menu
+        </button>
+      }
+
+      <!--
+        Two levels, matching the seed. A third would need a recursive
+        component; the menu test asserts nothing is nested deeper, so this
+        template cannot silently drop a level.
+      -->
+      @for (item of navigationTree(); track item.menuId) {
+        @if (item.routePath) {
+          <a
+            class="nav-link"
+            [routerLink]="item.routePath"
+            [target]="item.openInNewTab ? '_blank' : '_self'"
+            routerLinkActive="nav-link--active"
+            (click)="closeNav()"
+          >
+            {{ item.menuName }}
+          </a>
+        } @else {
+          <!-- Group node: a heading, not a link. -->
+          <span class="nav-group">{{ item.menuName }}</span>
+        }
+
+        @for (child of item.children; track child.menuId) {
+          <a
+            class="nav-link nav-link--child"
+            [routerLink]="child.routePath"
+            [target]="child.openInNewTab ? '_blank' : '_self'"
+            routerLinkActive="nav-link--active"
+            (click)="closeNav()"
+          >
+            {{ child.menuName }}
+          </a>
+        }
+      } @empty {
+        <!--
+          Distinguishes "still loading" from "genuinely nothing", because the
+          second one is a support call and the first one is not.
+        -->
+        @if (menu.loaded()) {
+          <p class="shell__nav-empty">No sections available for your role.</p>
+        } @else {
+          <p class="shell__nav-empty">Loading…</p>
+        }
+      }
+    </nav>
+
+    <!-- id is the target of the skip link in app.component.html. -->
+    <main class="shell__main" id="main-content" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>

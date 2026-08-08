@@ -1,0 +1,134 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+// =============================================================================
+// BADGES / STATUS PILLS
+//
+// One vocabulary of tones, reused across every status in the system: job
+// status, application status, verification status, report status, offer status.
+//
+// A badge must always carry its TEXT. The tone is reinforcement, never the
+// message — "Rejected" and "Approved" have to be distinguishable to someone who
+// cannot separate red from green.
+// =============================================================================
+
+// A stamp, not a pill. 2px corners, mono, tracked out and upper case — the
+// vocabulary of something inked onto a page rather than a chip in a web app.
+// It also sits better beside the pipeline track, which is square by nature.
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-1;
+  padding: 0.2rem v.$space-2;
+  border-radius: var(--jp-radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--jp-font-family-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--jp-font-weight-medium);
+  letter-spacing: var(--jp-tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.4;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+
+// -----------------------------------------------------------------------------
+// TONES
+// -----------------------------------------------------------------------------
+
+/// Draft, closed, archived — anything dormant.
+.badge--neutral {
+  background: var(--jp-neutral-100);
+  border-color: var(--jp-neutral-200);
+  color: var(--jp-neutral-700);
+}
+
+/// Active, approved, hired, verified.
+.badge--success {
+  background: var(--jp-success-soft);
+  border-color: color-mix(in srgb, var(--jp-success) 25%, transparent);
+  color: var(--jp-success-text);
+}
+
+/// Pending, awaiting verification, resubmit required, expiring.
+.badge--warning {
+  background: var(--jp-warning-soft);
+  border-color: color-mix(in srgb, var(--jp-warning) 25%, transparent);
+  color: var(--jp-warning-text);
+}
+
+/// Rejected, suspended, expired, declined.
+.badge--danger {
+  background: var(--jp-danger-soft);
+  border-color: color-mix(in srgb, var(--jp-danger) 25%, transparent);
+  color: var(--jp-danger-text);
+}
+
+/// Informational — shortlisted, interview, offer sent.
+.badge--info {
+  background: var(--jp-info-soft);
+  border-color: color-mix(in srgb, var(--jp-info) 25%, transparent);
+  color: var(--jp-info-text);
+}
+
+/// Brand emphasis — featured, new.
+.badge--primary {
+  background: var(--jp-primary-soft);
+  border-color: var(--jp-primary-200);
+  color: var(--jp-primary-800);
+}
+
+
+// -----------------------------------------------------------------------------
+// SIZES AND MODIFIERS
+// -----------------------------------------------------------------------------
+
+.badge--sm {
+  font-size: 0.625rem;
+  padding: 0.05rem v.$space-1;
+}
+
+.badge--lg {
+  font-size: var(--jp-font-size-xs);
+  padding: v.$space-1 v.$space-3;
+}
+
+/// Small coloured disc before the label. Purely decorative — it repeats what
+/// the tone already says, so it is aria-hidden in the markup.
+.badge__dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: currentcolor;
+  flex-shrink: 0;
+}
+
+/// Count bubble on a nav item or tab. The one place a full radius survives —
+/// a count is a quantity, not a label, and reads faster as a disc.
+.badge--count {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  justify-content: center;
+  border-radius: var(--jp-radius-full);
+  background: var(--jp-danger);
+  color: var(--jp-text-inverse);
+  border-color: transparent;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/// The verified tick shown against a school or teacher name.
+.badge--verified {
+  background: var(--jp-primary-soft);
+  border-color: var(--jp-primary-200);
+  color: var(--jp-primary-700);
+}
+
+/// On the board — the section chip in the shell header.
+.badge--on-dark {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 20%);
+  color: var(--jp-primary-200);
+}

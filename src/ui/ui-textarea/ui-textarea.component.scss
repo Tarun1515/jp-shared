@@ -1,0 +1,31 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:host {
+  display: block;
+}
+
+.textarea {
+  &__footer {
+    @include m.flex-between(flex-start, v.$space-3);
+  }
+
+  &__messages {
+    @include m.flex-column(v.$space-1);
+
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__count {
+    flex-shrink: 0;
+    font-size: var(--jp-font-size-xs);
+    color: var(--jp-text-subtle);
+    font-variant-numeric: tabular-nums;
+
+    &--warn {
+      color: var(--jp-warning);
+      font-weight: var(--jp-font-weight-medium);
+    }
+  }
+}

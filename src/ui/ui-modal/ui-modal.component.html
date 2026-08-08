@@ -1,0 +1,45 @@
+@if (open()) {
+  <div
+    class="modal-backdrop"
+    tabindex="-1"
+    (click)="onBackdrop()"
+    (keydown.escape)="onEscape()"
+  >
+    <div
+      class="modal modal--{{ size() }}"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'modal-title'"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="onEscape()"
+    >
+      <header class="modal__header">
+        <h2 class="modal__title" id="modal-title">{{ title() }}</h2>
+
+        @if (showClose()) {
+          <button
+            type="button"
+            class="btn btn--ghost btn--icon"
+            aria-label="Close dialog"
+            (click)="closed.emit()"
+          >
+            &times;
+          </button>
+        }
+      </header>
+
+      <div class="modal__body">
+        <ng-content />
+      </div>
+
+      <!--
+        Rendered unconditionally: a projected slot cannot be tested for
+        emptiness without a ContentChild, and an empty footer is a strip of
+        padding rather than a visible defect.
+      -->
+      <footer class="modal__footer">
+        <ng-content select="[footer]" />
+      </footer>
+    </div>
+  </div>
+}

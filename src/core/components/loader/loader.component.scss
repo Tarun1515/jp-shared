@@ -1,0 +1,30 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+.loader {
+  @include m.flex-center;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--jp-z-overlay);
+  background: rgb(255 255 255 / 55%);
+  backdrop-filter: blur(2px);
+
+  &__spinner {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 3px solid var(--jp-border);
+    border-top-color: var(--jp-primary);
+    border-radius: 50%;
+    animation: loader-spin 0.7s linear infinite;
+  }
+}
+
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+// Slow it rather than stopping it — a frozen spinner reads as a hung page.
+@include m.reduced-motion {
+  .loader__spinner { animation-duration: 2s; }
+}
