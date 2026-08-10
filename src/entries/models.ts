@@ -15,6 +15,10 @@ export * from '../core/constants/error-codes';
 
 // ---- models -----------------------------------------------------------------
 export * from '../core/models/api-response.model';
+
+// The approval engine's contract. Shared because jp-admin and jp-school are
+// two ends of the same flow and must agree on every field.
+export * from '../core/models/approval.model';
 export * from '../core/models/auth.model';
 export * from '../core/models/lookup.model';
 export * from '../core/models/menu.model';

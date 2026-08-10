@@ -137,3 +137,61 @@
 // -----------------------------------------------------------------------------
 
 .card-grid { @include m.grid-auto(18rem, v.$space-4); }
+
+
+// -----------------------------------------------------------------------------
+// FACTS
+//
+// A label/value list — what was submitted, what a request contains, what a
+// review step is about to send.
+//
+// A definition list rather than a table, deliberately: these are pairs, and a
+// table would promise a grid that carries meaning across rows when it does
+// not. Two columns on a wide screen, one below md.
+//
+// Shared because jp-admin reads a registration and jp-school writes one, and
+// they were rendering the same shape from two copies of the same CSS.
+// -----------------------------------------------------------------------------
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: v.$space-3 v.$space-5;
+}
+
+/// One column. For a narrow panel, where two would truncate everything.
+.facts--stack { grid-template-columns: 1fr; }
+
+.facts__item {
+  min-width: 0;
+
+  /// Spans both columns — an address, a paragraph, a list of subjects.
+  &--wide { grid-column: 1 / -1; }
+
+  dt {
+    font-size: var(--jp-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--jp-tracking-wide);
+    color: var(--jp-text-subtle);
+  }
+
+  dd {
+    margin-top: 2px;
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text);
+
+    // Long values here are emails, URLs and PINs — things with no spaces to
+    // break at, which would otherwise push the grid wider than the card.
+    overflow-wrap: anywhere;
+  }
+}
+
+/// A quieter second line under a value — the state under an address.
+.facts__sub {
+  display: block;
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+}
+
+@include m.down(md) {
+  .facts { grid-template-columns: 1fr; }
+}
