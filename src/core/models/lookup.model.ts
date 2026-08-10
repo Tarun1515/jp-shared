@@ -52,6 +52,19 @@ export const MASTER_KEYS = {
   // moderation
   reportReason: 'report-reason',
   reportStatus: 'report-status',
+
+  // approval engine — used by the admin verification screens
+  requestType: 'request-type',
+  approvalStatus: 'approval-status',
+  actionType: 'action-type',
+  documentType: 'document-type',
+
+  /** ⚠️ Scoped by request type. Pass the request type id as the parent. */
+  rejectionReason: 'rejection-reason',
+
+  // payments
+  paymentMode: 'payment-mode',
+  paymentStatus: 'payment-status',
 } as const;
 
 export type MasterKey = (typeof MASTER_KEYS)[keyof typeof MASTER_KEYS];
