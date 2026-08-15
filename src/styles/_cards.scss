@@ -59,9 +59,71 @@
 .card__footer {
   @include m.flex-between(center, v.$space-3);
 
+  flex-wrap: wrap;
   padding: v.$space-3 v.$space-5;
   border-top: 1px solid var(--jp-border);
   background: var(--jp-surface-alt);
+
+  // On a phone the actions take the full width. A right-aligned button at
+  // 375px is a small target in the corner a thumb reaches last.
+  @include m.down(md) {
+    justify-content: stretch;
+
+    ui-button,
+    > .btn { flex: 1 0 100%; }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// SECTION SAVE STATE — a card that saves on its own
+// -----------------------------------------------------------------------------
+//
+// 🔴 These three were written twice, identically, in the school profile and the
+// teacher profile before being moved here (3H). A section-level save is now the
+// house pattern for any long form, and every one of them needs exactly this
+// vocabulary: it saved, it clashed, or there is something to explain.
+
+/// "Saved", beside a section heading. Quiet — it is a confirmation, not news.
+.save-note {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-success-text);
+  white-space: nowrap;
+}
+
+/// 🔴 A CONCURRENCY REFUSAL. Takes the whole footer width and sits ABOVE the
+/// button, because it is not a hint about the save — it is the reason the save
+/// did not happen. Never styled as a passing toast: the edit is still on screen
+/// and unsaved, and the person has to decide what to do about it.
+.conflict {
+  flex: 1 0 100%;
+  margin: 0 0 v.$space-2;
+  padding: v.$space-3 v.$space-4;
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-snug);
+  color: var(--jp-text);
+  background: var(--jp-warning-surface, var(--jp-surface-alt));
+  border-left: 3px solid var(--jp-warning);
+  border-radius: var(--jp-radius-sm);
+
+  .btn { margin-left: v.$space-2; }
+}
+
+/// A quiet explanation inside a section — why a control is missing, or what a
+/// limitation means. Not an error, not a warning: a fact worth saying once.
+.note {
+  margin: 0;
+  padding: v.$space-3 v.$space-4;
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-snug);
+  color: var(--jp-text-muted);
+  background: var(--jp-surface-alt);
+  border-radius: var(--jp-radius-sm);
+}
+
+/// An empty state inside a card. The copy does the work; this only centres it.
+.card-empty {
+  padding: v.$space-8 v.$space-4;
+  text-align: center;
 }
 
 /// Card that navigates somewhere — a job in a list, a school in search results.

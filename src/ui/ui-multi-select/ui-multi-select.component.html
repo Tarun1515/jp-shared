@@ -1,4 +1,4 @@
-<div class="field multi" (keydown.escape)="close()">
+<div class="multi" [class.multi--open]="isOpen()">
   @if (label(); as text) {
     <label class="field__label" [for]="controlId">
       {{ text }}
@@ -9,8 +9,12 @@
   }
 
   <!--
-    A button, not a div: it has to be reachable by Tab and operable by Enter
-    and Space without re-implementing any of that by hand.
+    A real button: reachable by Tab, operable by Enter and Space, without
+    re-implementing any of it.
+
+    🔴 NOTHING INTERACTIVE INSIDE IT. The chips and the clear control used to
+    live in here, which is invalid HTML and made Space on a chip activate the
+    button around it. They are siblings now.
   -->
   <button
     type="button"
@@ -18,90 +22,121 @@
     [id]="controlId"
     [disabled]="isDisabled() || loading()"
     [attr.aria-expanded]="isOpen()"
-    [attr.aria-haspopup]="'listbox'"
+    aria-haspopup="listbox"
     [attr.aria-invalid]="hasError()"
     [attr.aria-describedby]="describedBy()"
     (click)="toggleOpen()"
+    (keydown)="onTriggerKeydown($event)"
   >
-    <span class="multi__chips">
-      @for (option of selectedOptions(); track option.value) {
-        <span class="multi__chip">
-          {{ option.label }}
-          <span
-            class="multi__chip-remove"
-            role="button"
-            tabindex="0"
-            [attr.aria-label]="'Remove ' + option.label"
-            (click)="remove(option.value, $event)"
-            (keydown.enter)="remove(option.value, $event)"
-            (keydown.space)="remove(option.value, $event)"
-          >&times;</span>
-        </span>
-      } @empty {
-        <span class="multi__placeholder">
-          {{ loading() ? 'Loading…' : (placeholder() || 'Select…') }}
-        </span>
-      }
+    <span class="multi__summary" [class.multi__summary--empty]="selectedOptions().length === 0">
+      {{ summary() }}
     </span>
 
-    @if (selectedOptions().length > 0) {
-      <span
-        class="multi__clear"
-        role="button"
-        tabindex="0"
-        aria-label="Clear all selections"
-        (click)="clearAll($event)"
-        (keydown.enter)="clearAll($event)"
-      >&times;</span>
-    }
+    <span class="multi__caret" aria-hidden="true"></span>
   </button>
 
   @if (isOpen()) {
-    <div class="multi__panel" role="listbox" aria-multiselectable="true">
+    <div class="multi__panel">
       @if (searchable()) {
         <input
-          type="search"
-          class="form-control multi__search"
-          placeholder="Search…"
+          #searchInput
+          type="text"
+          class="form-control form-control--sm multi__search"
+          role="combobox"
+          autocomplete="off"
+          placeholder="Type to filter…"
+          [attr.aria-label]="'Filter ' + (label() || 'options')"
+          [attr.aria-expanded]="true"
+          [attr.aria-controls]="listboxId"
+          [attr.aria-activedescendant]="activeOptionId()"
           [value]="search()"
           (input)="onSearch($event)"
+          (keydown)="onSearchKeydown($event)"
         />
       }
 
-      <div class="multi__options">
-        @for (option of filteredOptions(); track option.value) {
-          <div
+      <!--
+        ⚠️ role="listbox" wraps the OPTIONS only. It used to wrap the search box
+        too, which puts a text input inside a listbox — a structure no screen
+        reader can make sense of.
+      -->
+      <ul class="multi__options" role="listbox" aria-multiselectable="true" [id]="listboxId">
+        @for (option of filteredOptions(); track option.value; let i = $index) {
+          <li
             class="multi__option"
             role="option"
+            [id]="optionId(i)"
             [attr.aria-selected]="isSelected(option.value)"
             [class.multi__option--selected]="isSelected(option.value)"
+            [class.multi__option--active]="activeIndex() === i"
             [class.multi__option--disabled]="
               (option.disabled ?? false) || (atLimit() && !isSelected(option.value))
             "
             (click)="toggleOption(option.value)"
-            (keydown.enter)="toggleOption(option.value)"
-            tabindex="0"
+            (mouseenter)="activeIndex.set(i)"
           >
-            <input
-              type="checkbox"
-              class="form-check__input"
-              [checked]="isSelected(option.value)"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <span>{{ option.label }}</span>
-          </div>
+            <span class="multi__tick" aria-hidden="true">
+              {{ isSelected(option.value) ? '✓' : '' }}
+            </span>
+            <span class="multi__option-label">{{ option.label }}</span>
+          </li>
         } @empty {
-          <p class="multi__no-results">No matches for “{{ search() }}”.</p>
+          <li class="multi__no-results" role="presentation">
+            @if (search()) {
+              No matches for “{{ search() }}”.
+            } @else {
+              Nothing to choose from yet.
+            }
+          </li>
         }
-      </div>
+      </ul>
 
       @if (atLimit()) {
         <p class="multi__limit" role="status">
-          You can select up to {{ maxSelections() }}. Remove one to choose another.
+          That is the most you can choose ({{ maxSelections() }}). Remove one to add another.
         </p>
       }
     </div>
+  }
+
+  <!--
+    🔴 THE CHIPS LIVE HERE, BELOW THE CONTROL — not inside it.
+
+    Twenty selections used to inflate the trigger into a wall of pills that
+    pushed the rest of the form down the page. Here they wrap freely, each one
+    is a real button with its own accessible name, and the trigger stays one
+    line tall however many there are.
+  -->
+  @if (selectedOptions().length > 0) {
+    <ul class="multi__chips">
+      @for (option of selectedOptions(); track option.value) {
+        <li>
+          <button
+            type="button"
+            class="multi__chip"
+            [disabled]="isDisabled()"
+            [attr.aria-label]="'Remove ' + option.label"
+            (click)="remove(option.value)"
+          >
+            {{ option.label }}
+            <span class="multi__chip-x" aria-hidden="true">&times;</span>
+          </button>
+        </li>
+      }
+
+      @if (selectedOptions().length > 1) {
+        <li>
+          <button
+            type="button"
+            class="multi__clear"
+            [disabled]="isDisabled()"
+            (click)="clearAll()"
+          >
+            Clear all
+          </button>
+        </li>
+      }
+    </ul>
   }
 
   @if (helper(); as text) {

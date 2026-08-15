@@ -8,56 +8,44 @@
 .multi {
   position: relative;
 
+  // ---- the trigger --------------------------------------------------------
+  //
+  // One line tall, always. It says HOW MANY are selected; the chips below say
+  // which. That is what keeps twenty selections from turning the control into a
+  // block that pushes the rest of the form off the screen.
   &__control {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: v.$space-2;
-    min-height: 2.5rem;
     text-align: left;
     cursor: pointer;
 
     &:disabled { cursor: not-allowed; }
   }
 
-  &__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: v.$space-1;
+  &__summary {
+    @include m.truncate;
+
     flex: 1;
     min-width: 0;
   }
 
-  &__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: v.$space-1;
-    padding: 0.1rem v.$space-2;
-    border-radius: var(--jp-radius-full);
-    background: var(--jp-primary-soft);
-    color: var(--jp-primary-800);
-    font-size: var(--jp-font-size-sm);
-    line-height: 1.5;
-  }
+  &__summary--empty { color: var(--jp-text-subtle); }
 
-  &__chip-remove,
-  &__clear {
-    cursor: pointer;
-    font-size: 1.1em;
-    line-height: 1;
-    opacity: 0.7;
-
-    &:hover { opacity: 1; }
-
-    @include m.focus-ring(1px);
-  }
-
-  &__clear {
+  &__caret {
     flex-shrink: 0;
-    color: var(--jp-text-muted);
+    width: 0;
+    height: 0;
+    border-left: 0.3rem solid transparent;
+    border-right: 0.3rem solid transparent;
+    border-top: 0.35rem solid var(--jp-text-muted);
+    transition: transform var(--jp-transition-fast) var(--jp-easing);
   }
 
-  &__placeholder { color: var(--jp-text-subtle); }
+  &--open &__caret { transform: rotate(180deg); }
 
+  // ---- the panel ----------------------------------------------------------
   &__panel {
     position: absolute;
     top: calc(100% + #{v.$space-1});
@@ -80,6 +68,9 @@
     // the page height out. Beyond this the panel scrolls.
     max-height: 15rem;
     overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   &__option {
@@ -90,17 +81,37 @@
     border-radius: var(--jp-radius-sm);
     cursor: pointer;
 
-    &:hover { background: var(--jp-surface-alt); }
+    // ⚠️ The ACTIVE option is where the arrow keys are, and it has to look
+    // exactly like hover — they are the same idea reached two ways, and a
+    // keyboard user who cannot see where they are is navigating blind.
+    &--active,
+    &:hover {
+      background: var(--jp-surface-alt);
+    }
 
     &--selected { background: var(--jp-primary-soft); }
+
+    &--selected#{&}--active,
+    &--selected:hover {
+      background: var(--jp-primary-100, var(--jp-primary-soft));
+    }
 
     &--disabled {
       opacity: 0.5;
       pointer-events: none;
     }
-
-    @include m.focus-ring(-2px);
   }
+
+  // The tick keeps its width whether or not it is showing, so labels line up
+  // down the list instead of shifting as things are chosen.
+  &__tick {
+    flex-shrink: 0;
+    width: 1rem;
+    color: var(--jp-primary);
+    font-weight: var(--jp-font-weight-semibold);
+  }
+
+  &__option-label { min-width: 0; }
 
   &__no-results,
   &__limit {
@@ -113,6 +124,81 @@
 
   &__limit {
     border-top: 1px solid var(--jp-border);
-    color: var(--jp-warning);
+    color: var(--jp-warning-text, var(--jp-warning));
+  }
+
+  // ---- the chips ----------------------------------------------------------
+  //
+  // Below the control, so there can be as many as somebody wants. Each is a
+  // real button: Tab reaches it, Enter and Space remove it, and its accessible
+  // name says which one it removes.
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: v.$space-1;
+    margin: v.$space-2 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: v.$space-1;
+    padding: 0.15rem v.$space-2;
+    border: 1px solid transparent;
+    border-radius: var(--jp-radius-full);
+    background: var(--jp-primary-soft);
+    color: var(--jp-primary-800);
+    font-family: inherit;
+    font-size: var(--jp-font-size-sm);
+    line-height: 1.5;
+    cursor: pointer;
+
+    @include m.focus-ring(1px);
+
+    &:hover:not(:disabled) {
+      border-color: var(--jp-primary-400);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  &__chip-x {
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  &__clear {
+    padding: 0.15rem v.$space-2;
+    border: 0;
+    background: none;
+    color: var(--jp-text-muted);
+    font-family: inherit;
+    font-size: var(--jp-font-size-sm);
+    text-decoration: underline;
+    cursor: pointer;
+
+    @include m.focus-ring(1px);
+
+    &:hover:not(:disabled) { color: var(--jp-text); }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// At 375px the panel is the whole width of the field and the options are taller
+// — a 2rem row is a target somebody misses on a moving train.
+// -----------------------------------------------------------------------------
+@include m.down(md) {
+  .multi__option {
+    padding: v.$space-3 v.$space-2;
+  }
+
+  .multi__options {
+    max-height: 12rem;
   }
 }
