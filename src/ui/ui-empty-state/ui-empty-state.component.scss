@@ -39,4 +39,14 @@
   &__action {
     margin-top: v.$space-2;
   }
+
+  // The timeline line: smaller and quieter than the message, because it is
+  // about the product rather than about what the reader is looking at.
+  &__note {
+    margin: 0;
+    max-width: 28rem;
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text-subtle);
+    line-height: var(--jp-line-height-snug);
+  }
 }

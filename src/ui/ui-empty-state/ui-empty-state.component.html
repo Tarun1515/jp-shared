@@ -8,9 +8,22 @@
   }
 
   @if (actionLabel(); as label) {
-    <button type="button" class="btn btn--primary empty__action" (click)="action.emit()">
+    <button
+      type="button"
+      class="btn btn--primary empty__action"
+      [disabled]="actionDisabled()"
+      (click)="action.emit()"
+    >
       {{ label }}
     </button>
+  }
+
+  <!--
+    The timeline line. Sits UNDER the action because it explains the button
+    above it — "this is where it will be, and this is when".
+  -->
+  @if (note(); as text) {
+    <p class="empty__note">{{ text }}</p>
   }
 
   <!-- Extra content, for anything richer than a single button. -->
