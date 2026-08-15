@@ -126,6 +126,17 @@
   @include m.reduced-motion { transition: none; }
 }
 
+/// Compact variant, for a control that sits INSIDE something dense — a caption
+/// under a gallery tile, a filter in a toolbar, a cell in an editable table.
+///
+/// ⚠️ Still 16px type. The height comes down, the font does not: below 16px
+/// Safari on iOS zooms the page in on focus and never zooms back out, and that
+/// is worse in a dense layout than anywhere else.
+.form-control--sm {
+  min-height: 2.25rem;
+  padding: v.$space-1 v.$space-2;
+}
+
 textarea.form-control {
   min-height: 6rem;
   resize: vertical;

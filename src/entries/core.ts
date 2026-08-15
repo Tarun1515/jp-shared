@@ -37,3 +37,8 @@ export * from '../core/guards/active-account.guard';
 export * from '../core/guards/auth.guard';
 export * from '../core/guards/permission.guard';
 export * from '../core/guards/role.guard';
+
+// Not about permission at all: this one stops a navigation that would discard
+// what somebody has typed. Added in 3F, when the school profile became long
+// enough that losing it mattered.
+export * from '../core/guards/unsaved-changes.guard';

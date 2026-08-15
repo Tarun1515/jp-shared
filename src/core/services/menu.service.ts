@@ -47,6 +47,38 @@ export class MenuService {
   readonly loaded = this.loadedSignal.asReadonly();
 
   /**
+   * Routes the HOST APP hides, for reasons the server cannot know.
+   *
+   * ⚠️ The server decides what somebody is PERMITTED to reach. This is the
+   * separate question of what their own data makes meaningless — a
+   * single-campus school being shown a "Branches" screen it can only ever have
+   * one row in (decision 2.10). jp_sso issues the menu and has never heard of
+   * GroupType, so the app that does know has to be able to say so.
+   *
+   * 🔴 PRESENTATION, NOT PROTECTION — exactly like the rest of this service. A
+   * hidden entry has never stopped anyone typing the URL; the route guard and
+   * the server still do that.
+   */
+  private readonly hiddenRoutesSignal = signal<ReadonlySet<string>>(new Set());
+
+  /**
+   * Hides these route paths from the sidebar. Replaces any previous set.
+   *
+   * Idempotent and safe to call on every profile load: the signal only changes
+   * when the set actually differs, so a repeated call does not redraw the shell.
+   */
+  hideRoutes(routePaths: readonly string[]): void {
+    const next = new Set(routePaths);
+    const current = this.hiddenRoutesSignal();
+
+    if (next.size === current.size && [...next].every((path) => current.has(path))) {
+      return;
+    }
+
+    this.hiddenRoutesSignal.set(next);
+  }
+
+  /**
    * The sidebar tree: visible entries only, nested, each level ordered.
    *
    * A group node whose children are all invisible is dropped — the server
@@ -54,7 +86,12 @@ export class MenuService {
    * separate case of a group whose children are all detail pages.
    */
   readonly navigationTree = computed<MenuNode[]>(() => {
-    const visible = this.menusSignal().filter((m) => m.isMenuVisible);
+    const hidden = this.hiddenRoutesSignal();
+
+    const visible = this.menusSignal().filter(
+      (m) => m.isMenuVisible && !(m.routePath !== null && hidden.has(m.routePath)),
+    );
+
     const tree = buildTree(visible);
 
     return tree.filter((node) => node.routePath !== null || node.children.length > 0);
