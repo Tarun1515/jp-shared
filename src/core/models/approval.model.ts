@@ -192,7 +192,30 @@ export interface ApprovalDetail {
 export interface ApprovalFilter {
   requestTypeId?: number;
   statusId?: number;
-  assignedToUserId?: number;
+
+  /**
+   * One administrator's work, by Uid. Omitted means "any assignee".
+   *
+   * 🔴 A Uid, not the numeric jp_sso id the column holds. The server resolves
+   * one to the other — the cross-database join in the API layer (2.2) — which
+   * is what makes filtering by a COLLEAGUE possible at all. The old numeric
+   * contract only ever worked for the caller's own id, which is why the filter
+   * could say "me" and nothing else.
+   */
+  assignedToUserUid?: string;
+
+  /**
+   * Only requests nobody has acted on yet. G15, closed in 3G.
+   *
+   * 🔴 It needs its own field because omitting `assignedToUserId` already means
+   * "any assignee" — so the one question somebody clearing a backlog actually
+   * asks, WHAT IS NOBODY WORKING ON, could not be expressed at all.
+   *
+   * ⚠️ Send one or the other, never both: the server refuses the combination
+   * rather than picking a winner, because a request carrying both means the
+   * client has lost track of what it is asking.
+   */
+  unassignedOnly?: boolean;
 
   /** IST calendar dates, `yyyy-MM-dd`. Converted to a UTC range in SQL (2.28). */
   fromDate?: string;
