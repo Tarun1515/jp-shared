@@ -17,6 +17,25 @@ import { ToastService } from '../services/toast.service';
  * Runs OUTSIDE the auth interceptor, so a 401 that the auth interceptor
  * successfully refreshed away never reaches here.
  */
+/**
+ * Codes whose message is written by the screen that asked, not by this file.
+ *
+ * ⚠️ Adding a code here is a promise that SOME component renders it. An
+ * unhandled code on this list fails silently, which is the one thing this
+ * interceptor exists to prevent — so the entry and the component that handles
+ * it belong in the same commit.
+ */
+const COMPONENT_RENDERED_CODES = new Set<string>([
+  ERROR_CODES.validationFailed,
+
+  // Phase 4B — the jobs list explains these, with the reset timing and the
+  // fact that the job is safe as a draft. See jobRefusalMessage().
+  'QUOTA_EXHAUSTED',
+  'PLAN_LACKS_FEATURE',
+  'FEATURE_DISABLED',
+  'JOB_FIELD_LOCKED',
+]);
+
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const toast = inject(ToastService);
   const router = inject(Router);
@@ -55,13 +74,32 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
           break;
 
         case 403:
-          toast.error(message ?? 'You do not have permission to perform this action.');
+          // ⚠️ Same rule as the 400 branch below. FEATURE_DISABLED arrives as a
+          // 403 — it is an operator decision, not a permission — and the jobs
+          // screen has a better sentence for it than "you do not have
+          // permission", which would be actively misleading.
+          if (!COMPONENT_RENDERED_CODES.has(code ?? '')) {
+            toast.error(message ?? 'You do not have permission to perform this action.');
+          }
           break;
 
         case 400:
-          // Field-level errors belong on the form controls, not in a toast
-          // that covers them up. The component renders `errors`.
-          if (code !== ERROR_CODES.validationFailed) {
+          /*
+            Field-level errors belong on the form controls, not in a toast that
+            covers them up. The component renders `errors`.
+
+            ⚠️ Phase 4B extended the same reasoning to the entitlement refusals.
+            A component that renders a code ITSELF must not also be toasted at,
+            or the person gets two messages for one event — which is exactly
+            what happened the first time the quota refusal was shown: the
+            server's sentence and the screen's fuller one, stacked.
+
+            🔴 These codes stay off this list only if no screen handles them.
+            The rule is "whoever says it best says it once" — and for a quota
+            refusal that is the screen, because it can add when the allowance
+            resets and that the job is safe as a draft.
+          */
+          if (!COMPONENT_RENDERED_CODES.has(code ?? '')) {
             toast.error(message ?? 'That request could not be completed.');
           }
           break;
