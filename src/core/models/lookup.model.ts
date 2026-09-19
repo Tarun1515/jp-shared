@@ -44,10 +44,35 @@ export const MASTER_KEYS = {
   facility: 'facility',
   experienceRange: 'experience-range',
 
-  // jobs and applications
+  /*
+    jobs and applications.
+
+    🔴 `employment-type` and `job-status` live in jp_app, not jp_mdm — the
+    tables that point at them carry physical foreign keys and a physical FK may
+    not cross a database. That is invisible from here on purpose: the URL, the
+    response shape and the hour of caching are identical, and a component
+    asking for a dropdown has no business knowing which database answered.
+    See PROJECT_MEMORY G26 / decision 2.68.
+
+    ⚠️ `application-status` is NOT served yet — Phase 5 adds the table. Asking
+    for it today returns an empty list, not a 404.
+  */
   employmentType: 'employment-type',
   jobStatus: 'job-status',
   applicationStatus: 'application-status',
+
+  /*
+    The entitlement ledger's own vocabulary (jp_app). Reference data — the
+    NAMES of entry kinds and pockets — for a ledger screen to render with.
+
+    🔴 NOT gating data. Feature modes and plan quotas (`m_mdm_features`,
+    `m_mdm_plan_features`) are read uncached through the entitlement endpoints
+    and must NEVER come through MasterService, which caches for an hour. A kill
+    switch with an hour of lag is not a kill switch (MONETIZATION_DESIGN).
+  */
+  ledgerEntryType: 'ledger-entry-type',
+  ledgerSource: 'ledger-source',
+  refEntityType: 'ref-entity-type',
 
   // moderation
   reportReason: 'report-reason',
