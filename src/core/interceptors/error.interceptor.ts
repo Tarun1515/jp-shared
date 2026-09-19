@@ -34,6 +34,26 @@ const COMPONENT_RENDERED_CODES = new Set<string>([
   'PLAN_LACKS_FEATURE',
   'FEATURE_DISABLED',
   'JOB_FIELD_LOCKED',
+
+  /*
+    Phase 5B — the teacher's apply panel renders these two IN PLACE, beside the
+    Apply button, because each has a next step that a toast cannot carry:
+    RESUME_REQUIRED links straight to the resume section of the profile, and
+    JOB_EXPIRED replaces the button with the date applications closed.
+
+    ⚠️ DELIBERATELY ONLY THESE TWO of the six application codes. The others are
+    NOT rendered by any component and must keep their toast:
+
+      ALREADY_APPLIED          never arrives here at all — Status 1, HTTP 200
+      APPLY_CONFLICT           retryable, says nothing about the user
+      INVALID_TRANSITION       only reachable by forcing a request the UI does
+      OFFER_STAGE_UNAVAILABLE  not offer; the same
+
+    Listing a code here that no component renders is how a refusal becomes
+    silence, which is the one thing this interceptor exists to prevent.
+  */
+  'RESUME_REQUIRED',
+  'JOB_EXPIRED',
 ]);
 
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {

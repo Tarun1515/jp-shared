@@ -54,8 +54,15 @@ export const MASTER_KEYS = {
     asking for a dropdown has no business knowing which database answered.
     See PROJECT_MEMORY G26 / decision 2.68.
 
-    ⚠️ `application-status` is NOT served yet — Phase 5 adds the table. Asking
-    for it today returns an empty list, not a 404.
+    🔴 `application-status` IS served as of Phase 5B, and it returns the SIX
+    REACHABLE statuses only. The master holds ten; seven to ten are the offer
+    chain, seeded so their ids never move and refused by the transition map
+    until Phase 6. A filter offering one of them could only ever return an
+    empty list, which is indistinguishable from a broken screen.
+
+    ⚠️ The names it returns are the SCHOOL's. A teacher is shown
+    TeacherFacingName — "Not selected", not "Rejected" — and every teacher-side
+    row already carries its own, so no teacher screen reads this key.
   */
   employmentType: 'employment-type',
   jobStatus: 'job-status',

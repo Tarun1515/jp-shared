@@ -8,14 +8,23 @@
   }
 
   @if (actionLabel(); as label) {
-    <button
-      type="button"
-      class="btn btn--primary empty__action"
-      [disabled]="actionDisabled()"
-      (click)="action.emit()"
-    >
-      {{ label }}
-    </button>
+    <!--
+      An anchor when the action is navigation, a button when it is a handler.
+      Same class, same place; the difference is that middle-click and "open in
+      a new tab" work on the first one and cannot work on the second.
+    -->
+    @if (isLink()) {
+      <a class="btn btn--primary empty__action" [routerLink]="actionLink()">{{ label }}</a>
+    } @else {
+      <button
+        type="button"
+        class="btn btn--primary empty__action"
+        [disabled]="actionDisabled()"
+        (click)="action.emit()"
+      >
+        {{ label }}
+      </button>
+    }
   }
 
   <!--
