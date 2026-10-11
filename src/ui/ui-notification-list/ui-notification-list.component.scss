@@ -1,0 +1,102 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+/*
+  ⚠️ The page, the note, the pager and the buttons are the design system's. What
+  is here is the list's own row — which is deliberately NOT the bell panel's
+  row: this one has room for a date column and a longer body, and sharing one
+  rule between a 22rem popover and a full page would compromise both.
+*/
+
+.notif {
+  @include m.flex-column(0);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-lg);
+  overflow: hidden;
+}
+
+.notif__item + .notif__item {
+  border-top: 1px solid var(--jp-border);
+}
+
+.notif__item--unread {
+  background: var(--jp-surface-alt);
+}
+
+.notif__row {
+  @include m.focus-ring;
+
+  display: flex;
+  align-items: flex-start;
+  gap: v.$space-3;
+  width: 100%;
+  padding: v.$space-3 v.$space-4;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: var(--jp-surface-alt); }
+}
+
+.notif__icon {
+  flex: 0 0 auto;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+
+.notif__text {
+  @include m.flex-column(0.125rem);
+
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.notif__title {
+  color: var(--jp-text);
+  font-size: var(--jp-font-size-sm);
+  font-weight: var(--jp-font-weight-medium);
+}
+
+.notif__body {
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-sm);
+  line-height: var(--jp-line-height-snug);
+}
+
+/*
+  ⚠️ The date column is hidden below md rather than squeezed. At 375 a date and
+  a time beside a two-line body leaves nothing for either — and the day is
+  recoverable by opening the row.
+*/
+.notif__when {
+  @include m.flex-column(0);
+
+  flex: 0 0 auto;
+  align-items: flex-end;
+  color: var(--jp-text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+
+  @include m.down(md) {
+    display: none;
+  }
+}
+
+.notif__day {
+  font-weight: var(--jp-font-weight-medium);
+}
+
+.notif__dot {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.4375rem;
+  border-radius: 50%;
+  background: var(--jp-primary);
+}

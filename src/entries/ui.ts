@@ -37,6 +37,14 @@ export * from '../ui/ui-multi-select/ui-multi-select.component';
   another component's template is a component nobody can find.
 */
 export * from '../ui/ui-notification-bell/ui-notification-bell.component';
+
+/*
+  🔴 The full page both portals route AT, directly. The seeded
+  SCHOOL_NOTIFICATIONS and TEACHER_NOTIFICATIONS rows point at /notifications in
+  each app, and both load this — rather than each wrapping it, which is where
+  two copies would start to disagree (G27).
+*/
+export * from '../ui/ui-notification-list/ui-notification-list.component';
 export * from '../ui/ui-otp-input/ui-otp-input.component';
 export * from '../ui/ui-page-header/ui-page-header.component';
 export * from '../ui/ui-password-field/ui-password-field.component';

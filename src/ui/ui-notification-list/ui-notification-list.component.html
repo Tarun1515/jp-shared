@@ -1,0 +1,89 @@
+<div class="page enter">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1 class="page__title">Notifications</h1>
+      <p class="page__description">
+        Everything the platform has told you, newest first.
+      </p>
+    </div>
+
+    <div class="page__actions">
+      <!--
+        2.62's "not yet": nothing to mark read, so the control stays and is
+        disabled. It is the same control that will work when something arrives —
+        removing it would read as "you may not do this".
+      -->
+      <button type="button" class="btn" [disabled]="!hasUnread()" (click)="markAllRead()">
+        Mark all read
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="table__loading">Loading …</p>
+  } @else if (failed()) {
+    <!--
+      🔴 A FAILED LOAD IS NOT AN EMPTY LIST. "You have nothing" is a different
+      statement from "we could not ask", and showing the first when the second
+      is true is how somebody misses an offer.
+    -->
+    <p class="note" role="alert">
+      Your notifications could not be loaded. Nothing has been missed — try
+      again in a moment.
+    </p>
+  } @else if (items().length === 0) {
+    <p class="note">
+      Nothing yet. Applications, invitations and offers will appear here.
+    </p>
+  } @else {
+    <ul class="notif">
+      @for (row of items(); track row.notificationId) {
+        <li class="notif__item" [class.notif__item--unread]="!row.isRead">
+          <button type="button" class="notif__row" (click)="activate(row)">
+            <span class="notif__icon" aria-hidden="true">{{ icon(row.typeCode) }}</span>
+
+            <span class="notif__text">
+              <span class="notif__title">{{ row.title }}</span>
+              @if (row.body) {
+                <span class="notif__body">{{ row.body }}</span>
+              }
+            </span>
+
+            <span class="notif__when">
+              <span class="notif__day">{{ day(row.createdOn) }}</span>
+              <span class="notif__time">{{ time(row.createdOn) }}</span>
+            </span>
+
+            <!--
+              ⚠️ The unread marker is a dot AND the row's ground, not colour
+              alone — the same rule the tabs' active state follows.
+            -->
+            @if (!row.isRead) {
+              <span class="notif__dot" aria-label="Unread"></span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+
+    <!-- The SERVER's page, never a client-side slice under a cap (G29). -->
+    @if (showPager()) {
+      <nav class="table-pager" aria-label="Notification pages">
+        <button type="button" class="btn btn--sm" [disabled]="pageNumber() === 1" (click)="page(-1)">
+          Newer
+        </button>
+
+        <span class="table-pager__state">Page {{ pageNumber() }}</span>
+
+        <button
+          type="button"
+          class="btn btn--sm"
+          [disabled]="items().length < pageSize"
+          (click)="page(1)"
+        >
+          Older
+        </button>
+      </nav>
+    }
+  }
+</div>

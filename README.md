@@ -53,7 +53,7 @@ npm run build      # production
 ## What is exposed — and the naming rule behind it
 
 ```
-src/entries/ui.ts       → jp-shared/ui       17 ui-* components, both shells, overlays
+src/entries/ui.ts       → jp-shared/ui       19 ui-* components, both shells, 3 overlays
 src/entries/core.ts     → jp-shared/core     services, guards, interceptors, DI tokens
 src/entries/models.ts   → jp-shared/models   types, constants, pure utilities
 src/entries/pages.ts    → jp-shared/pages    coming-soon, forbidden, not-found
