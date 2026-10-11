@@ -120,6 +120,70 @@
   border-radius: var(--jp-radius-sm);
 }
 
+// -----------------------------------------------------------------------------
+// BANNER — G27.
+//
+// Three screens had written their own copy: jp-admin's entitlement matrix,
+// jp-school's job form, and jp-school's job list. The bases were byte-identical
+// in all three; only the modifier differed, and each was named for its
+// SITUATION rather than its meaning — `--alert`, `--locked`, `--info`.
+//
+// 🔴 Situational names are why there were three. "Locked" and "alert" describe
+// one screen's story, so the next screen with a different story writes a fourth
+// rule rather than reusing one of them. The modifiers here are named for
+// severity, which is the thing that actually varies, and the two renames are in
+// the same commit as this (5B's rule).
+//
+// ⚠️ `margin: 0`, like `.note` directly above. See _tabs.scss for the full
+// argument — a component that imposes outer margin cannot be placed.
+// -----------------------------------------------------------------------------
+
+/// A full-width message above the content it is about: why this page is
+/// read-only, what a plan change did, which field is locked and by what.
+///
+/// Louder than `.note`, quieter than a toast — it stays on the page because
+/// the condition it describes is still true. Always pair it with
+/// `role="status"` (or `role="alert"` when it is genuinely an error), because
+/// the colour is not available to everybody.
+.banner {
+  margin: 0;
+  padding: v.$space-3 v.$space-4;
+  border-radius: var(--jp-radius-lg);
+  font-size: var(--jp-font-size-sm);
+
+  /*
+    ⚠️ Relaxed, from the job form's copy. Its banner runs to three lines and the
+    other two are one-liners — and a one-liner cannot tell the difference, so
+    the setting that helps the longest case wins.
+  */
+  line-height: var(--jp-line-height-relaxed);
+  color: var(--jp-text);
+
+  /// Something is true and worth knowing. No action implied.
+  &--info {
+    background: var(--jp-info-soft);
+    border: 1px solid var(--jp-info);
+  }
+
+  /// Something worked, and the result is not visible on this screen.
+  &--success {
+    background: var(--jp-success-soft);
+    border: 1px solid var(--jp-success);
+  }
+
+  /// A limit, a lock, or a "not yet" — the 2.62 case. Say when it changes.
+  &--warning {
+    background: var(--jp-warning-soft);
+    border: 1px solid var(--jp-warning);
+  }
+
+  /// Something is wrong or has been refused.
+  &--danger {
+    background: var(--jp-danger-soft);
+    border: 1px solid var(--jp-danger);
+  }
+}
+
 /// An empty state inside a card. The copy does the work; this only centres it.
 .card-empty {
   padding: v.$space-8 v.$space-4;

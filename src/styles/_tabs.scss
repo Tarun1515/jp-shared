@@ -1,0 +1,94 @@
+// =============================================================================
+// TABS — G27.
+//
+// Three screens had written their own copy of this: jp-admin's entitlement
+// matrix, jp-admin's verification queue, and jp-school's job list. 2.23 says
+// "no one-off styles; if something is missing, add it to the system", and three
+// copies means the fourth screen writes a fourth. 6C would have been that
+// fourth screen — twice over.
+//
+// -----------------------------------------------------------------------------
+// 🔴 WHAT THE THREE COPIES DISAGREED ABOUT, AND WHICH SIDE WON
+// -----------------------------------------------------------------------------
+// G27's close-out asked for the differences to be reconciled rather than
+// averaged, so here they are:
+//
+//   background/border/cursor resets  matrix ✓  queue ✗  job-list ✓
+//   text-decoration: none           matrix ✗  queue ✓  job-list ✗
+//
+// ⚠️ Not drift — the ELEMENT differs. The matrix and the job list render
+// `<button>`s because their tabs are local state; the queue renders `<a
+// routerLink>`s because its tabs are real routes, which is the better choice
+// where it applies (back, refresh and a bookmark all work). Both sets of resets
+// belong here, because a tab strip has to serve both and neither reset can harm
+// the other element.
+//
+//   overflow-x / white-space        matrix ✗  queue ✗  job-list ✓
+//
+// ⚠️ Also not drift: the job list has six status tabs and scrolls at 375, the
+// others have two. Kept, because it costs a two-tab strip nothing and spares
+// the next long strip from finding out the hard way.
+//
+//   margin-bottom: $space-4         matrix ✓  queue ✗  job-list ✓
+//
+// 🔴 THIS one is the interesting disagreement, and the minority was right. The
+// queue wraps its page in `.page`, which is `flex-column($space-5)` — a GAP, so
+// a child adding its own margin would double the spacing. The other two predate
+// that idiom and hand-roll their page spacing, so their margin is load-bearing.
+//
+// The system's own convention settles it: `.note` carries `margin: 0`. A
+// component that imposes outer margin is a component that cannot be placed, and
+// that is exactly how three copies came to exist. So there is no margin here,
+// and the two screens that are not inside a `.page` keep one explicit line
+// each — a deliberate opt-in, not a copy of the pattern.
+// =============================================================================
+@use 'variables' as v;
+@use 'mixins' as m;
+
+/// A row of tabs. Works for `<button>` children (local state) and
+/// `<a routerLink>` children (real routes) — prefer routes where the tab
+/// corresponds to a URL somebody might bookmark or go back to.
+///
+/// Carries no outer margin: put it inside `.page`, or give it one at the call
+/// site.
+.tabs {
+  display: flex;
+  gap: v.$space-1;
+  border-bottom: 1px solid var(--jp-border);
+
+  /*
+    ⚠️ The strip scrolls rather than wrapping or squashing. Six tabs at 375 is
+    the case that drove this; two tabs never notice it.
+  */
+  overflow-x: auto;
+}
+
+.tabs__tab {
+  @include m.focus-ring;
+
+  padding: v.$space-2 v.$space-4;
+  border-bottom: 2px solid transparent;
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-sm);
+  font-weight: var(--jp-font-weight-medium);
+  white-space: nowrap;
+
+  // `<button>` arrives with a background, a border and a default cursor…
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  cursor: pointer;
+
+  // …and `<a>` arrives underlined.
+  text-decoration: none;
+
+  &:hover { color: var(--jp-text); }
+
+  /// The tab you are on. Pair it with `aria-selected` on a button or
+  /// `aria-current="page"` on a link — the colour is not the only signal.
+  &--active {
+    border-bottom-color: var(--jp-primary);
+    color: var(--jp-text);
+  }
+}
