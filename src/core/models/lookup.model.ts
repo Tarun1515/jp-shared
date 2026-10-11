@@ -54,11 +54,24 @@ export const MASTER_KEYS = {
     asking for a dropdown has no business knowing which database answered.
     See PROJECT_MEMORY G26 / decision 2.68.
 
-    🔴 `application-status` IS served as of Phase 5B, and it returns the SIX
-    REACHABLE statuses only. The master holds ten; seven to ten are the offer
-    chain, seeded so their ids never move and refused by the transition map
-    until Phase 6. A filter offering one of them could only ever return an
-    empty list, which is indistinguishable from a broken screen.
+    🔴 `application-status` RETURNS ALL TEN AS OF PHASE 6A, and this note used
+    to say six.
+
+    5B shipped it returning the six reachable statuses, with the reason written
+    here: seven to ten were the offer chain, seeded so their ids could never
+    move and refused outright by the transition map, and a filter offering one
+    of them could only ever return an empty list — indistinguishable from a
+    broken screen.
+
+    ⚠️ 6A made all four reachable (t_app_offers, and the map's 5→7→8→10 chain),
+    and flipped their IsReachable flag in the same change. The master's
+    whitelist branch reads that flag, so the endpoint started returning ten the
+    day offers shipped — and this comment kept promising six for two phases.
+    Found in 6C-2 while wiring the search screen's filters.
+
+    🔴 The lesson is the one G26 and G30 both record: a statement about shipped
+    behaviour is a thing that rots. The flag is the source of truth; this is
+    prose about it, so it has to be re-read whenever the flag moves.
 
     ⚠️ The names it returns are the SCHOOL's. A teacher is shown
     TeacherFacingName — "Not selected", not "Rejected" — and every teacher-side
@@ -67,6 +80,27 @@ export const MASTER_KEYS = {
   employmentType: 'employment-type',
   jobStatus: 'job-status',
   applicationStatus: 'application-status',
+
+  /*
+    Phase 6A, 6B and 6C — offers, invitations and notifications (all jp_app).
+
+    🔴 Each is in the API's master whitelist in the same commit as its table
+    (2.68, and the APPLICATION_STATUS lesson: that one shipped in 5A and was not
+    served until 5B, where the only symptom was a hardcoded filter nobody could
+    see was hardcoded). These three are the client half of the same rule.
+
+    ⚠️ `invite-status` returns the SCHOOL's names. The teacher's own wording —
+    "You passed on this" rather than "Ignored" — travels on each of their rows
+    from USP_GetMyInvites, so no teacher screen reads this key either.
+
+    ⚠️ `notification-type` deliberately returns only id, code, name and order.
+    Who else receives a kind of event, and whether it also leaves by email, are
+    facts about the product that a client has no use for and no business
+    reading (015).
+  */
+  offerStatus: 'offer-status',
+  inviteStatus: 'invite-status',
+  notificationType: 'notification-type',
 
   /*
     The entitlement ledger's own vocabulary (jp_app). Reference data — the
