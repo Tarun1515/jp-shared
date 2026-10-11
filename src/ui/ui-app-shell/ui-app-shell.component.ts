@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MenuService } from '../../core/services/menu.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { UiNotificationBellComponent } from '../ui-notification-bell/ui-notification-bell.component';
 
 /**
  * The chrome shared by all three portals: header, side navigation, outlet.
@@ -19,7 +21,7 @@ import { MenuService } from '../../core/services/menu.service';
 @Component({
   selector: 'ui-app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, UiNotificationBellComponent],
   templateUrl: './ui-app-shell.component.html',
   styleUrl: './ui-app-shell.component.scss',
 })
@@ -28,6 +30,14 @@ export class UiAppShellComponent {
 
   protected readonly auth = inject(AuthService);
   protected readonly menu = inject(MenuService);
+
+  /*
+    ⚠️ Injected here only to START the unread poll once, when the chrome
+    mounts. The bell component reads the same singleton — it is provided in
+    root and federation shares @angular/core as a strict singleton, so both get
+    the same instance rather than two polls and two counts.
+  */
+  private readonly notifications = inject(NotificationService);
 
   private readonly router = inject(Router);
 
@@ -68,6 +78,18 @@ export class UiAppShellComponent {
       switching between /school and /teacher chrome costs nothing.
     */
     this.menu.load().subscribe();
+
+    /*
+      ⚠️ The bell's first count, here for the same reason the menu is: this
+      covers a fresh sign-in AND a reload that restored a session from storage,
+      with one call. The poll that follows runs every sixty seconds.
+
+      🔴 Without this the badge would be blank until the first interval fired —
+      a whole minute of "you have nothing" on a page that might have an offer
+      waiting, which is the one thing a notification badge must never say
+      wrongly.
+    */
+    this.notifications.start();
   }
 
   protected toggleNav(): void {
@@ -82,6 +104,13 @@ export class UiAppShellComponent {
     // The menu is per-user, so it must not survive into the next session on a
     // shared machine.
     this.menu.clear();
+
+    /*
+      🔴 And so is the unread count. On a shared machine the next person signing
+      in would otherwise inherit a badge counting somebody else's notifications
+      — and could open the panel before the first poll replaced the list.
+    */
+    this.notifications.clear();
 
     // Local state is already cleared synchronously inside logout(), so the
     // redirect is correct whether or not the server call succeeds.

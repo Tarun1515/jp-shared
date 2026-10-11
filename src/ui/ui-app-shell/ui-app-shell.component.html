@@ -29,6 +29,23 @@
       <span class="shell__user text-truncate hide-below-md">{{ label }}</span>
     }
 
+    <!--
+      🔴 IN THE SHELL, SO IT IS ON EVERY SCREEN OF EVERY PORTAL.
+
+      Putting the bell on individual screens would mean a person reading an
+      applicant's profile has no idea an offer was just declined. It also keeps
+      ONE copy — G27's lesson, where .tabs and .banner were each written three
+      times and the fourth screen was always going to write a fourth.
+
+      ⚠️ It renders for anybody signed in, including a school VIEWER. A
+      notification is addressed to a person, not granted by a role, so there is
+      no permission to check here — and the service has no method that could
+      ask for somebody else's rows.
+    -->
+    @if (auth.isAuthenticated()) {
+      <ui-notification-bell />
+    }
+
     <button type="button" class="btn btn--on-dark btn--sm" (click)="logout()">Sign out</button>
   </header>
 

@@ -24,6 +24,7 @@ export * from '../core/services/master.service';
 export * from '../core/services/menu.service';
 export * from '../core/services/toast.service';
 export * from '../core/services/token-storage.service';
+export * from '../core/services/notification.service';
 export * from '../core/components/confirm-dialog/confirm-dialog.service';
 
 // ---- interceptors -----------------------------------------------------------

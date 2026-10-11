@@ -1,0 +1,104 @@
+<!--
+  ⚠️ The wrapper is relatively positioned so the panel can hang off the bell
+  without the header needing to know anything about it.
+-->
+<div class="bell">
+  <button
+    type="button"
+    class="btn btn--on-dark btn--icon bell__trigger"
+    [attr.aria-expanded]="open()"
+    aria-controls="notification-panel"
+    [attr.aria-label]="
+      hasUnread()
+        ? 'Notifications, ' + unreadCount() + ' unread'
+        : 'Notifications'
+    "
+    (click)="toggle()"
+  >
+    🔔
+
+    <!--
+      🔴 ZERO RENDERS NOTHING, not a "0". A badge showing zero is a badge
+      telling somebody to look at an empty list.
+
+      ⚠️ aria-hidden because the count is already in the button's own label
+      above — a screen reader would otherwise read the number twice, once
+      without any word for what it counts.
+    -->
+    @if (hasUnread()) {
+      <span class="bell__count" aria-hidden="true">{{ badgeLabel() }}</span>
+    }
+  </button>
+
+  @if (open()) {
+    <!--
+      Clicking outside closes it. A button rather than a div so it is reachable
+      and dismissible by keyboard, not only by pointer — the same reason the
+      shell's navigation scrim is a button.
+    -->
+    <button type="button" class="bell__scrim" aria-label="Close notifications" (click)="close()"></button>
+
+    <section id="notification-panel" class="bell__panel" role="dialog" aria-label="Notifications">
+      <header class="bell__header">
+        <h2 class="bell__title">Notifications</h2>
+
+        <!--
+          2.62: "not yet" versus "not allowed". There is nothing to mark read, so
+          the control is DISABLED and still visible — it is the same control that
+          will work in a moment, not a thing this person may not do.
+        -->
+        <button
+          type="button"
+          class="btn btn--ghost btn--sm"
+          [disabled]="!hasUnread()"
+          (click)="markAllRead()"
+        >
+          Mark all read
+        </button>
+      </header>
+
+      @if (loading()) {
+        <p class="bell__state">Loading …</p>
+      } @else if (failed()) {
+        <!--
+          🔴 A FAILED LOAD IS NOT AN EMPTY LIST. "You have nothing" is a
+          different statement from "we could not ask", and showing the first
+          when the second is true is how somebody misses an offer.
+        -->
+        <p class="bell__state" role="alert">
+          Your notifications could not be loaded. Nothing has been missed — try again in a moment.
+        </p>
+      } @else if (items().length === 0) {
+        <p class="bell__state">
+          Nothing yet. Applications, invitations and offers will appear here.
+        </p>
+      } @else {
+        <ul class="bell__list">
+          @for (row of items(); track row.notificationId) {
+            <li class="bell__item" [class.bell__item--unread]="!row.isRead">
+              <button type="button" class="bell__row" (click)="activate(row)">
+                <span class="bell__icon" aria-hidden="true">{{ icon(row.typeCode) }}</span>
+
+                <span class="bell__text">
+                  <span class="bell__row-title">{{ row.title }}</span>
+                  @if (row.body) {
+                    <span class="bell__body">{{ row.body }}</span>
+                  }
+                  <span class="bell__when">{{ when(row.createdOn) }}</span>
+                </span>
+
+                <!--
+                  ⚠️ The unread marker is a dot AND the row's weight, not colour
+                  alone — the same rule the tabs' active state follows.
+                -->
+                @if (!row.isRead) {
+                  <span class="bell__dot" aria-label="Unread"></span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

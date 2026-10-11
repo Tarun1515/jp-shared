@@ -30,6 +30,13 @@ export * from '../ui/ui-file-upload/ui-file-upload.component';
 export * from '../ui/ui-input/ui-input.component';
 export * from '../ui/ui-modal/ui-modal.component';
 export * from '../ui/ui-multi-select/ui-multi-select.component';
+
+/*
+  ⚠️ Exported even though the shell mounts it itself, because a screen may want
+  the panel somewhere else later — and a component reachable only through
+  another component's template is a component nobody can find.
+*/
+export * from '../ui/ui-notification-bell/ui-notification-bell.component';
 export * from '../ui/ui-otp-input/ui-otp-input.component';
 export * from '../ui/ui-page-header/ui-page-header.component';
 export * from '../ui/ui-password-field/ui-password-field.component';
