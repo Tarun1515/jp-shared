@@ -22,6 +22,7 @@ export * from '../ui/ui-form-control.base';
 
 // ---- design system components -----------------------------------------------
 export * from '../ui/ui-badge/ui-badge.component';
+export * from '../ui/ui-billing-page/ui-billing-page.component';
 export * from '../ui/ui-button/ui-button.component';
 export * from '../ui/ui-checkbox/ui-checkbox.component';
 export * from '../ui/ui-datepicker/ui-datepicker.component';

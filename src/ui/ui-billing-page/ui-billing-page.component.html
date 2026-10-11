@@ -1,0 +1,389 @@
+<div class="page enter">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1 class="page__title">Plan and billing</h1>
+      <p class="page__description">
+        What you are on, what you have used of it, and how to change it.
+      </p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="table__loading">Loading …</p>
+  } @else if (failed()) {
+    <!--
+      🔴 A FAILED READ IS NOT AN EMPTY ACCOUNT. "You are on no plan" and "we
+      could not ask" are different statements, and showing the first when the
+      second is true is how somebody concludes their payment was lost.
+    -->
+    <p class="note" role="alert">
+      Your plan could not be loaded. Nothing has changed — try again in a
+      moment.
+    </p>
+  } @else {
+    <!--
+      🔴 THE REQUEST OUTCOME, AND IT SAYS WHAT HAPPENS NEXT.
+
+      2.62: a control that cannot do the thing yet must say when. Here the
+      thing is genuinely not automatic — somebody has to look at a bank
+      statement — so the screen says exactly that, and gives the reference to
+      quote (2.46).
+    -->
+    @if (requested(); as done) {
+      <div class="banner banner--success" role="status">
+        <div>
+          <strong>We have recorded your request for {{ done.planName }}.</strong>
+          <p>
+            Pay by bank transfer, cheque or cash and an administrator will
+            confirm it. Your plan changes when the payment is confirmed, not
+            before.
+          </p>
+          <p>
+            Quote <strong>{{ done.requestNo }}</strong> if you need to ask us
+            about it.
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================ the current plan ===== -->
+    @if (current(); as plan) {
+      <!--
+        🔴 A LAPSED PAID PLAN IS NAMED, NOT PAPERED OVER.
+
+        6.5-C: a subscription past its end date reads as the free baseline, so
+        the numbers below ARE the free plan's. Showing them under the paid
+        plan's name would be the specific lie this phase was built to avoid.
+      -->
+      @if (lapsed()) {
+        <div class="banner banner--warning" role="status">
+          <div>
+            <strong>Your paid plan ended on {{ day(plan.endsOn) }}.</strong>
+            <p>
+              Your account still works on the free plan — the allowances below
+              are the free ones. Nothing was deleted, and you can move back to
+              a paid plan whenever you like.
+            </p>
+          </div>
+        </div>
+      }
+
+      @if (stopped()) {
+        <!--
+          ⚠️ A DIFFERENT STATE, AND A DIFFERENT SENTENCE. Cancelled or
+          suspended is a decision somebody made, not time passing — so it does
+          not get the reassuring "you are on the free plan" message, because
+          that would not be true.
+        -->
+        <div class="banner banner--danger" role="alert">
+          <div>
+            <strong>This account's subscription is not active.</strong>
+            <p>Please contact us — this is not something time will fix.</p>
+          </div>
+        </div>
+      }
+
+      <section class="card bill__current">
+        <div class="card__header">
+          <div>
+            <h2 class="card__title">{{ plan.planName }}</h2>
+            <p class="card__subtitle">{{ priceLabel(plan) }}</p>
+          </div>
+
+          <ui-badge [tone]="plan.inForce ? 'success' : 'neutral'" size="sm">
+            {{ plan.inForce ? 'Active' : 'Not active' }}
+          </ui-badge>
+        </div>
+
+        <div class="card__body">
+          <dl class="bill__facts">
+            <div>
+              <dt>Started</dt>
+              <dd>{{ day(plan.startsOn) }}</dd>
+            </div>
+
+            <div>
+              <dt>{{ plan.inForce ? 'Renews or ends' : 'Ended' }}</dt>
+              <!--
+                ⚠️ "No end date" rather than a blank or a dash: every free plan
+                is perpetual and that is a fact worth stating, not a gap.
+              -->
+              <dd>{{ plan.endsOn ? day(plan.endsOn) : 'No end date' }}</dd>
+            </div>
+          </dl>
+
+          @if (plan.usage.length > 0) {
+            <h3 class="bill__section-title">This month</h3>
+
+            <!--
+              🔴 THE DERIVED NUMBERS, which the engine computes and nobody
+              stores (2.64). The ledger is the only record and the balance is
+              recomputed on every read.
+            -->
+            <ul class="bill__usage">
+              @for (u of plan.usage; track u.featureId) {
+                <li class="bill__usage-row">
+                  <div class="bill__usage-head">
+                    <span class="bill__usage-name">{{ u.featureName }}</span>
+                    <span class="bill__usage-count">
+                      {{ u.used }} of {{ allowance(u) }}
+                    </span>
+                  </div>
+
+                  @if (u.allowed !== null) {
+                    <div
+                      class="bill__meter"
+                      role="progressbar"
+                      [attr.aria-valuenow]="u.used"
+                      [attr.aria-valuemax]="u.allowed"
+                      [attr.aria-label]="u.featureName + ' used this month'"
+                    >
+                      <span
+                        class="bill__meter-fill"
+                        [class.bill__meter-fill--over]="overspent(u)"
+                        [style.width.%]="usedPercent(u)"
+                      ></span>
+                    </div>
+                  }
+
+                  <!--
+                    🔴 OVER-USED IS A REAL STATE, AND IT IS EXPLAINED.
+
+                    A downgrade below what has already been spent leaves
+                    used > allowed (6.5-D). The server clamps remaining at
+                    zero — never −1 — and this is where a customer finds out
+                    why nothing else will go through this month.
+                  -->
+                  @if (overspent(u)) {
+                    <p class="bill__usage-note">
+                      You have used more than this plan allows, so nothing
+                      further will go through until next month. Nothing you
+                      already did was undone.
+                    </p>
+                  } @else {
+                    <p class="bill__usage-note">{{ remainingLabel(u) }}</p>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <!--
+              ⚠️ On the day 6.5 ships this is everybody: every feature is FREE
+              with no plan mappings (2.64), so there is nothing metered to
+              report. That is a real state and it is stated plainly rather
+              than rendered as an empty list.
+            -->
+            <p class="note">
+              Nothing on your plan is metered at the moment, so there is no
+              usage to show.
+            </p>
+          }
+        </div>
+      </section>
+    } @else {
+      <p class="note">
+        No plan is on file for this account. Please contact us — this is
+        something we need to fix at our end.
+      </p>
+    }
+
+    <!-- ========================================== the change confirm ===== -->
+    @if (choosing(); as plan) {
+      <!--
+        🔴 AN INLINE STEP, NOT A MODAL.
+
+        A modal is for a yes/no. This carries a CHOICE — which way the money
+        will arrive — and a modal that contains a form is a form in a box. It
+        also avoided a second copy of the .dialog styles, which are scoped to
+        the confirm-dialog component (G27).
+      -->
+      <section class="card bill__confirm" role="group" aria-labelledby="bill-confirm-title">
+        <div class="card__header">
+          <h2 class="card__title" id="bill-confirm-title">
+            Request {{ plan.name }}
+          </h2>
+        </div>
+
+        <div class="card__body">
+          <p>
+            <strong>{{ priceLabel(plan) }}.</strong>
+            Nothing changes on your account until the payment is confirmed —
+            you keep what you have now until then.
+          </p>
+
+          <div class="field">
+            <label class="field__label" for="bill-mode">
+              How will you pay?
+            </label>
+
+            <select
+              id="bill-mode"
+              class="form-control"
+              [value]="chosenMode()"
+              (change)="setMode($any($event.target).value)"
+            >
+              @for (mode of modes; track mode.id) {
+                <option [value]="mode.id">{{ mode.label }}</option>
+              }
+            </select>
+
+            <!--
+              🔴 NO "PAY ONLINE" OPTION, and this note is why rather than a
+              silently short list. 2.62: if something is not available, the
+              control is not offered and the reason is given.
+            -->
+            <p class="field__helper">
+              Online payment is not available yet. We will tell you where to
+              send the money once your request is recorded.
+            </p>
+          </div>
+        </div>
+
+        <div class="card__footer">
+          <div class="btn-group btn-group--end">
+            <button type="button" class="btn btn--ghost" (click)="cancelChoice()">
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              class="btn btn--primary"
+              [disabled]="submitting()"
+              (click)="confirm()"
+            >
+              {{ submitting() ? 'Recording …' : 'Record my request' }}
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ================================================ the catalog ====== -->
+    <section class="bill__catalog">
+      <h2 class="bill__section-title">Other plans</h2>
+
+      <!--
+        🔒 2.62's "NOT ALLOWED": the control is REMOVED and the reason given.
+
+        A disabled "Request this plan" would say "not yet" — which is false; it
+        is never going to work for this person. Saying who to ask is the useful
+        half, and it is said ONCE here rather than on every card.
+
+        ⚠️ The panel above stays visible deliberately. An HR about to post a job
+        needs to know this month's allowance; hiding it would mean finding the
+        limit by being refused by it.
+      -->
+      @if (!canRequest() && !nothingToChangeTo()) {
+        <p class="note">
+          You can see the plan but not change it. Ask whoever owns this account
+          to request a different plan.
+        </p>
+      }
+
+      @if (nothingToChangeTo()) {
+        <!--
+          🔴 TRUE ON THE DAY THIS SHIPS, AND SAID PLAINLY.
+
+          Only the free plan is seeded, because pricing is not finalised and a
+          price we ship gets quoted back at us (008_seed_plans.sql). An empty
+          chooser with a disabled button would imply plans exist and are
+          temporarily unavailable, which is not what is happening.
+        -->
+        <p class="note">
+          There is nothing else to move to yet. We will publish paid plans here
+          when they are ready — you do not need to do anything.
+        </p>
+      } @else {
+        <div class="card-grid">
+          @for (plan of changeableTo(); track plan.planId) {
+            <article class="card bill__plan">
+              <div class="card__header">
+                <div>
+                  <h3 class="card__title">{{ plan.name }}</h3>
+                  <p class="card__subtitle">{{ priceLabel(plan) }}</p>
+                </div>
+              </div>
+
+              <div class="card__body">
+                @if (plan.features.length > 0) {
+                  <ul class="bill__includes">
+                    @for (f of plan.features; track f.featureId) {
+                      <li>
+                        <span class="bill__includes-name">{{ f.featureName }}</span>
+                        <span class="bill__includes-quota">
+                          {{ f.quotaPerPeriod === null ? 'Unlimited' : f.quotaPerPeriod + ' per month' }}
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="bill__includes-none">
+                    Nothing on this plan is metered.
+                  </p>
+                }
+              </div>
+
+              @if (canRequest()) {
+                <div class="card__footer">
+                  <button
+                    type="button"
+                    class="btn btn--primary btn--sm"
+                    (click)="choose(plan)"
+                  >
+                    Request this plan
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ================================================ the history ====== -->
+    @if (history().length > 1) {
+      <!--
+        ⚠️ Shown only once there is a PAST, which is what `> 1` means: every
+        account has one row from the day it was provisioned, and a "history"
+        containing only the plan named at the top of the page is noise.
+      -->
+      <section class="bill__history">
+        <h2 class="bill__section-title">Plan history</h2>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Plan</th>
+                <th scope="col">From</th>
+                <th scope="col">To</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (row of history(); track row.subscriptionId) {
+                <tr>
+                  <td>{{ row.planName }}</td>
+                  <td>{{ day(row.startsOn) }}</td>
+                  <td>{{ row.endsOn ? day(row.endsOn) : '—' }}</td>
+                  <td>
+                    <!--
+                      🔴 From fn_SubscriptionInForce, computed by the server.
+                      A history screen that decided for itself which row is
+                      live would be another copy of the predicate every money
+                      question in the product routes through.
+                    -->
+                    <ui-badge [tone]="statusTone(row)" size="sm">
+                      {{ statusLabel(row) }}
+                    </ui-badge>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  }
+</div>

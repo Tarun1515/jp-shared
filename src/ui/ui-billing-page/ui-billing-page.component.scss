@@ -1,0 +1,173 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+/*
+  ⚠️ The page, the cards, the banners, the note, the table, the buttons and the
+  field are all the design system's. What is here is the three things billing
+  owns and nothing else does: the facts pair, the usage meter, and the
+  plan-includes list.
+
+  🔴 No `.tabs` and no `.banner` margin override. This screen IS inside `.page`,
+  which is a flex column with its own gap — so the five one-line opt-ins G27
+  left behind do not apply here, and adding one would make it six.
+*/
+
+.bill__section-title {
+  margin: 0;
+  color: var(--jp-text);
+  font-size: var(--jp-font-size-base);
+  font-weight: var(--jp-font-weight-semibold);
+}
+
+/* ------------------------------------------------------------- the facts -- */
+
+.bill__facts {
+  @include m.grid-auto(10rem, v.$space-4);
+
+  margin: 0 0 v.$space-5;
+
+  dt {
+    color: var(--jp-text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  dd {
+    margin: 0.125rem 0 0;
+    color: var(--jp-text);
+    font-weight: var(--jp-font-weight-medium);
+  }
+}
+
+/* ------------------------------------------------------------- the usage -- */
+
+.bill__usage {
+  @include m.flex-column(v.$space-4);
+
+  margin: v.$space-3 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bill__usage-row {
+  @include m.flex-column(0.375rem);
+}
+
+.bill__usage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: v.$space-3;
+}
+
+.bill__usage-name {
+  color: var(--jp-text);
+  font-size: var(--jp-font-size-sm);
+  font-weight: var(--jp-font-weight-medium);
+}
+
+.bill__usage-count {
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bill__usage-note {
+  margin: 0;
+  color: var(--jp-text-muted);
+  font-size: 0.75rem;
+}
+
+/*
+  The meter.
+
+  ⚠️ A plain div rather than <progress>: <progress> cannot be styled
+  consistently across browsers without resetting three vendor pseudo-elements,
+  and the accessible role is carried by role="progressbar" with its aria-value
+  attributes in the template.
+*/
+.bill__meter {
+  height: 0.375rem;
+  border-radius: var(--jp-radius-sm);
+  background: var(--jp-surface-alt);
+  border: 1px solid var(--jp-border);
+  overflow: hidden;
+}
+
+.bill__meter-fill {
+  display: block;
+  height: 100%;
+  background: var(--jp-primary);
+
+  /*
+    🔴 OVER-USED IS NOT RED-AS-DECORATION.
+
+    A downgrade below what was already spent is a real, non-error state (6.5-D)
+    — the customer did nothing wrong and nothing was undone. So it is the
+    WARNING colour, not danger, and the template says so in words beside it:
+    colour is never the only carrier of meaning.
+  */
+  &--over {
+    background: var(--jp-warning);
+  }
+}
+
+/* ----------------------------------------------------------- the catalog -- */
+
+.bill__catalog,
+.bill__history {
+  @include m.flex-column(v.$space-3);
+}
+
+.bill__plan {
+  /* The footer's button sits at the bottom whatever the body's height. */
+  display: flex;
+  flex-direction: column;
+
+  .card__body { flex: 1 1 auto; }
+}
+
+.bill__includes {
+  @include m.flex-column(0.375rem);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: v.$space-3;
+    font-size: var(--jp-font-size-sm);
+  }
+}
+
+.bill__includes-name {
+  color: var(--jp-text);
+}
+
+.bill__includes-quota {
+  color: var(--jp-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bill__includes-none {
+  margin: 0;
+  color: var(--jp-text-muted);
+  font-size: var(--jp-font-size-sm);
+}
+
+/* ----------------------------------------------------------- the confirm -- */
+
+/*
+  Marked, because it is the one block on the page that is asking for a
+  decision. `.card--marked` already exists for exactly this and carries the
+  accent border — reusing it rather than inventing a second marked style.
+*/
+.bill__confirm {
+  border-color: var(--jp-primary);
+}
