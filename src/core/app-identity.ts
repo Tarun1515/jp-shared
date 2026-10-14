@@ -46,6 +46,26 @@ export interface JpAppIdentity {
 
 export const JP_APP_IDENTITY = new InjectionToken<JpAppIdentity>('JP_APP_IDENTITY');
 
+/**
+ * `jp.accessToken` -> `jp.school.accessToken`.
+ *
+ * 🔴 EXPORTED SO THERE IS ONE COPY. This lived as a private method on
+ * TokenStorageService until 7B-0 needed the same prefixing for the pending
+ * return URL. Two three-line copies of a key-building rule is how two stores
+ * end up disagreeing about where they live, and the symptom would be a value
+ * written under one key and read from another — silently absent rather than
+ * wrong.
+ *
+ * ⚠️ The output is unchanged from that private method, deliberately: a
+ * different key here signs every existing session out. signin-check.mjs
+ * asserts the app-scoped keys, so a mistake in this function fails there.
+ */
+export function scopedStorageKey(key: string, appKey: JpAppKey): string {
+  const [namespace, ...rest] = key.split('.');
+
+  return [namespace, appKey, ...rest].join('.');
+}
+
 /** Maps a token's utype claim to the app that serves it. */
 export function appKeyForUserType(userType: UserType): JpAppKey | null {
   switch (userType) {

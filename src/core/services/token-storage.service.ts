@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { JP_APP_IDENTITY } from '../app-identity';
+import { JP_APP_IDENTITY, scopedStorageKey } from '../app-identity';
 import { STORAGE_KEYS } from '../constants/auth-constants';
 
 /**
@@ -56,11 +56,14 @@ export class TokenStorageService {
     this.remove(this.refreshTokenKey);
   }
 
-  /** `jp.accessToken` -> `jp.school.accessToken` */
+  /**
+   * ⚠️ Moved to `scopedStorageKey` in app-identity.ts in 7B-0, because the
+   * pending return URL needs the same prefixing and a second copy of this rule
+   * is how two stores end up disagreeing about where they live. The keys it
+   * produces are identical.
+   */
   private scoped(key: string): string {
-    const [namespace, ...rest] = key.split('.');
-
-    return [namespace, this.identity.key, ...rest].join('.');
+    return scopedStorageKey(key, this.identity.key);
   }
 
   private read(key: string): string | null {

@@ -37,6 +37,16 @@ export const ROLE_CODES = {
 export const STORAGE_KEYS = {
   accessToken: 'jp.accessToken',
   refreshToken: 'jp.refreshToken',
+
+  /**
+   * Where a visitor was headed before they were asked to sign in. 7B-0.
+   *
+   * ⚠️ sessionStorage, NOT localStorage — unlike the tokens above. A pending
+   * return URL belongs to one funnel: somebody who closed the browser two days
+   * ago and comes back should land on their dashboard, not be thrown at a job
+   * application they half-started. See ReturnUrlService.
+   */
+  returnUrl: 'jp.returnUrl',
 } as const;
 
 /**
