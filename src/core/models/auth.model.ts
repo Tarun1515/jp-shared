@@ -61,6 +61,14 @@ export interface RegisterSchoolRequest {
 
 /** POST /api/auth/register/teacher */
 export interface RegisterTeacherRequest {
+  /**
+   * 🔴 ADDED IN 7B (G43). The signup form has required a name since Phase 1
+   * and this interface had no field for it, so the name was collected and
+   * dropped before the request left the browser. The database column and the
+   * provisioning procedure's @FullName parameter were there all along.
+   */
+  name: string;
+
   email: string;
   mobile?: string | null;
   password: string;
