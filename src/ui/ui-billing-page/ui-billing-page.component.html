@@ -42,8 +42,46 @@
             Quote <strong>{{ done.requestNo }}</strong> if you need to ask us
             about it.
           </p>
+
+          <!--
+            🔴 SR-4: BACK TO WHAT THEY WERE DOING.
+
+            A school reaches this page mid-task — posting their second job,
+            sending their twenty-sixth invite — hits a quota wall, and comes
+            here. Dropping them on the dashboard afterwards means finding their
+            way back to a half-finished job, and most will not bother: the
+            upgrade worked and the work is lost.
+
+            ⚠️ OFFERED, NOT AUTOMATIC. Navigating the moment the request lands
+            would snatch the request number off the screen, and that number is
+            exactly what they need when they ring about a payment nobody has
+            confirmed yet. So the confirmation stays and carries the way back.
+          -->
+          @if (cameFrom()) {
+            <p class="billing__back">
+              <button type="button" class="btn btn--primary" (click)="goBack()">
+                Back to what you were doing
+              </button>
+            </p>
+          }
         </div>
       </div>
+    }
+
+    <!--
+      🔴 AND THE SAME WAY BACK BEFORE THEY CHOOSE ANYTHING.
+
+      Somebody who came here from a quota wall, read the plans and decided not
+      to upgrade today still has a half-finished job waiting. Without this
+      their only route back is the browser's back button, which on a page they
+      navigated into is not where they think it is.
+    -->
+    @if (cameFrom() && !requested()) {
+      <p class="billing__back billing__back--top">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="goBack()">
+          ← Back to what you were doing
+        </button>
+      </p>
     }
 
     <!-- ============================================ the current plan ===== -->

@@ -171,3 +171,16 @@
 .bill__confirm {
   border-color: var(--jp-primary);
 }
+
+/* ------------------------------------------------- SR-4: the way back ----
+   A school that came here from a quota wall has a half-finished job waiting.
+   The top one is for "I read the plans and will decide later"; the one in the
+   confirmation is for "I have asked, now let me finish".
+-------------------------------------------------------------------------- */
+.billing__back {
+  margin: var(--jp-space-3, 0.75rem) 0 0;
+}
+
+.billing__back--top {
+  margin: 0 0 var(--jp-space-4, 1rem);
+}

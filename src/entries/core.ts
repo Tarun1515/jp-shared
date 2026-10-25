@@ -21,6 +21,13 @@ export * from '../core/services/app-access.service';
 export * from '../core/services/auth.service';
 export * from '../core/services/loader.service';
 export * from '../core/services/master.service';
+
+/*
+  SR-4. Every route to the plans goes through this, so that "where they came
+  from" is decided in one place — and so a school that upgrades mid-task can
+  be put back on the half-finished job it was refused on.
+*/
+export * from '../core/services/upgrade.service';
 export * from '../core/services/menu.service';
 export * from '../core/services/toast.service';
 export * from '../core/services/return-url.service';

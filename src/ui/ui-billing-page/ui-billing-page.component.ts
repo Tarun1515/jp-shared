@@ -6,6 +6,8 @@ import {
   Plan,
   SubscriptionHistoryRow,
 } from '../../core/services/billing.service';
+import { Router } from '@angular/router';
+import { ReturnUrlService } from '../../core/services/return-url.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UiBadgeComponent } from '../ui-badge/ui-badge.component';
 
@@ -53,6 +55,41 @@ import { UiBadgeComponent } from '../ui-badge/ui-badge.component';
 export class UiBillingPageComponent {
   private readonly billing = inject(BillingService);
   private readonly auth = inject(AuthService);
+
+  /*
+    🔴 SR-4: WHERE THEY CAME FROM, SO THEY CAN BE PUT BACK.
+
+    A school hits a quota wall mid-task — posting their second job, inviting
+    their twenty-sixth teacher — clicks "see plans", and lands here. Sending
+    them to the dashboard afterwards means they have to find their way back to
+    a half-finished job, and most will not: the upgrade worked and the task
+    they were doing is lost.
+
+    ⚠️ ReturnUrlService IS REUSED, NOT REBUILT. It already runs every candidate
+    through safeInternalPath — one leading slash, no scheme, no host — which is
+    the guard funnel-e2e section 2 forces with a hostile returnUrl. A second
+    implementation here is a second place for an open redirect to appear.
+  */
+  private readonly returnUrl = inject(ReturnUrlService);
+  private readonly router = inject(Router);
+
+  /** Where "back to what I was doing" goes, when there is such a place. */
+  /*
+    ⚠️ READ ONCE AT CONSTRUCTION, WITH peek() — NOT IN AN effect().
+
+    The first version used an effect, which threw NG0600 (writing to a signal
+    inside an effect is refused by default) and blanked the whole billing
+    page — the suite saw it as .bill__current never appearing.
+
+    An effect was wrong anyway: peek() is a plain read of session storage,
+    not a signal, so there was nothing reactive to track and the effect would
+    have run exactly once regardless.
+
+    🔴 peek, NOT consume. The return is only spent when they act on it — a
+    school that opens the plans, reads them and wanders off must not have its
+    destination silently cleared.
+  */
+  protected readonly cameFrom = signal<string | null>(this.returnUrl.peek());
 
   /**
    * 🔒 BILLING.MANAGE — whether this person may commit the account to a
@@ -133,6 +170,15 @@ export class UiBillingPageComponent {
     this.choosing.set(plan);
   }
 
+  /**
+   * Back to the page they were on when they hit the wall.
+   */
+  protected goBack(): void {
+    const target = this.returnUrl.consume();
+
+    void this.router.navigateByUrl(target ?? '/dashboard');
+  }
+
   protected cancelChoice(): void {
     this.choosing.set(null);
   }
@@ -150,6 +196,18 @@ export class UiBillingPageComponent {
 
         if (result) {
           this.requested.set({ requestNo: result.requestNo, planName: plan.name });
+
+          /*
+            🔴 THE RETURN IS OFFERED, NOT TAKEN. Navigating away the instant
+            the request lands would snatch the request number off the screen —
+            and that number is the thing they need when they ring up about a
+            payment nobody has confirmed yet.
+
+            So the confirmation stays, and it carries the way back. cameFrom is
+            refreshed here because consume() has not run: the button is what
+            spends it.
+          */
+          this.cameFrom.set(this.returnUrl.peek());
         }
       },
       error: () => {
