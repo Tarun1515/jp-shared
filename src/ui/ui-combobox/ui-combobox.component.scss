@@ -1,0 +1,131 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+:host {
+  display: block;
+}
+
+.cmb {
+  position: relative;
+
+  // The input itself is .form-control, so it inherits every field style —
+  // focus ring, invalid state, disabled — from _forms.scss rather than
+  // growing a second set here that drifts from it.
+  &__input {
+    // Room for the chevron, and for the clear button when one is shown.
+    padding-right: 3.25rem;
+    text-overflow: ellipsis;
+  }
+
+  // ---- the chevron ----------------------------------------------------------
+  //
+  // Drawn rather than an icon font: one borrowed glyph is how a component
+  // acquires a dependency the host has to remember to load.
+  &__chevron {
+    position: absolute;
+    top: 50%;
+    right: v.$space-3;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: -0.35rem;
+    border-right: 2px solid var(--jp-text-muted);
+    border-bottom: 2px solid var(--jp-text-muted);
+    transform: rotate(45deg);
+    transition: transform var(--jp-easing, 0.2s ease);
+    pointer-events: none;
+  }
+
+  &--open &__chevron {
+    transform: rotate(-135deg);
+    margin-top: -0.1rem;
+  }
+
+  // ---- clear ----------------------------------------------------------------
+  &__clear {
+    position: absolute;
+    top: 50%;
+    right: 2rem;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--jp-radius-full);
+    background: transparent;
+    color: var(--jp-text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--jp-surface-alt);
+      color: var(--jp-text);
+    }
+  }
+
+  // ---- the list -------------------------------------------------------------
+  // Matches ui-multi-select's panel exactly: two dropdowns in one design system
+  // that sit at different offsets, with different shadows, is the drift G27 is
+  // about.
+  &__list {
+    @include m.custom-scrollbar;
+
+    position: absolute;
+    top: calc(100% + #{v.$space-1});
+    left: 0;
+    right: 0;
+    z-index: var(--jp-z-dropdown);
+    max-height: 15rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: v.$space-1;
+    list-style: none;
+    background: var(--jp-surface);
+    border: 1px solid var(--jp-border-strong);
+    border-radius: var(--jp-radius-md);
+    box-shadow: var(--jp-shadow-lg);
+  }
+
+  &__option {
+    padding: v.$space-2;
+    border-radius: var(--jp-radius-sm);
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text);
+    cursor: pointer;
+
+    // Keyboard and mouse share one highlight. Two different "current" rows —
+    // one under the pointer, one under the arrow keys — is a control where
+    // pressing Enter does something other than what is highlighted.
+    &--active {
+      background: var(--jp-primary-soft);
+      color: var(--jp-primary-800);
+    }
+
+    &--chosen {
+      font-weight: var(--jp-font-weight-semibold);
+    }
+
+    &--disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__empty {
+    padding: v.$space-3 v.$space-2;
+    font-size: var(--jp-font-size-sm);
+    color: var(--jp-text-muted);
+    text-align: center;
+  }
+}
+
+// On a phone the list is taller than the keyboard leaves room for, so it is
+// capped lower — the same number ui-multi-select uses, for the same reason.
+@media (max-width: 36rem) {
+  .cmb__list {
+    max-height: 12rem;
+  }
+}

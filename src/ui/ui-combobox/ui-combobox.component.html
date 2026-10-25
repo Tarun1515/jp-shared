@@ -1,0 +1,100 @@
+<div class="field">
+  @if (label(); as text) {
+    <label class="field__label" [for]="controlId">
+      {{ text }}
+      @if (!required()) {
+        <span class="field__optional">Optional</span>
+      }
+    </label>
+  }
+
+  <!--
+    role="combobox" on the INPUT, not on a wrapper. The ARIA pattern puts the
+    role on the thing that takes focus, and a screen reader announcing
+    "combobox" on a div the user cannot reach helps nobody.
+  -->
+  <div class="cmb" [class.cmb--open]="open()">
+    <input
+      #field
+      class="form-control cmb__input"
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      [id]="controlId"
+      [disabled]="isDisabled() || loading()"
+      [required]="required()"
+      [value]="display()"
+      [attr.placeholder]="loading() ? 'Loading…' : (selected() ? selected()!.label : placeholderOption())"
+      [attr.aria-expanded]="open()"
+      [attr.aria-controls]="listId"
+      [attr.aria-autocomplete]="searchable() ? 'list' : 'none'"
+      [attr.aria-activedescendant]="open() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
+      [attr.aria-invalid]="hasError()"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-busy]="loading() ? 'true' : null"
+      [attr.readonly]="searchable() ? null : ''"
+      (focus)="onFocus()"
+      (input)="onInput($event)"
+      (keydown)="onKey($event)"
+      (blur)="onBlur()"
+    />
+
+    <!--
+      ⚠️ The clear button is OUTSIDE the input's blur path on purpose:
+      (mousedown) fires before (blur), so clicking it would otherwise close the
+      list and lose the click. preventDefault keeps focus where it is.
+    -->
+    @if (selected() && !isDisabled() && !required()) {
+      <button
+        type="button"
+        class="cmb__clear"
+        [attr.aria-label]="'Clear ' + (label() ?? 'selection')"
+        (mousedown)="$event.preventDefault()"
+        (click)="clear()"
+      >×</button>
+    }
+
+    <span class="cmb__chevron" aria-hidden="true"></span>
+
+    @if (open()) {
+      <ul class="cmb__list" role="listbox" [id]="listId">
+        @for (option of visible(); track option.value; let i = $index) {
+          <li
+            class="cmb__option"
+            role="option"
+            [id]="optionId(i)"
+            [class.cmb__option--active]="i === activeIndex()"
+            [class.cmb__option--chosen]="option.value === value()"
+            [class.cmb__option--disabled]="option.disabled"
+            [attr.aria-selected]="option.value === value()"
+            [attr.aria-disabled]="option.disabled ? 'true' : null"
+            (mousedown)="$event.preventDefault()"
+            (click)="choose(option)"
+          >{{ option.label }}</li>
+        } @empty {
+          <!--
+            🔴 THE EMPTY LIST SAYS WHY, and the two reasons are different
+            answers: a filter that matched nothing is the user's typing, an
+            empty master is ours. Telling them apart is the difference between
+            "try another spelling" and "this list is not loaded yet".
+          -->
+          <li class="cmb__empty" role="status">
+            @if (options().length === 0) {
+              Nothing to choose from yet.
+            } @else {
+              No match for "{{ query() }}".
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (helper(); as text) {
+    <span class="field__helper" [id]="helperId">{{ text }}</span>
+  }
+
+  @if (error(); as text) {
+    <span class="field__error" [id]="errorId" role="alert">{{ text }}</span>
+  }
+</div>

@@ -25,6 +25,17 @@ export * from '../ui/ui-badge/ui-badge.component';
 export * from '../ui/ui-billing-page/ui-billing-page.component';
 export * from '../ui/ui-button/ui-button.component';
 export * from '../ui/ui-checkbox/ui-checkbox.component';
+
+/*
+  SR-3 (G27). ONE searchable select for the whole product. SR-1 seeded 143
+  Haryana towns and will seed every other state in time; a native <select>
+  with 143 options is a list you can only use if you know where N falls.
+
+  ⚠️ It takes the same UiSelectOption[] as <ui-select>, so replacing a plain
+  select over master data is a tag change — which is what makes doing it
+  everywhere a job somebody can finish.
+*/
+export * from '../ui/ui-combobox/ui-combobox.component';
 export * from '../ui/ui-datepicker/ui-datepicker.component';
 export * from '../ui/ui-empty-state/ui-empty-state.component';
 export * from '../ui/ui-file-upload/ui-file-upload.component';
