@@ -26,6 +26,13 @@ export const MASTER_KEYS = {
   country: 'country',
   state: 'state',
   district: 'district',
+
+  /*
+    SR-1. Between district and city, and optional — see ADDRESS_DESIGN.md.
+    Empty for every state except Haryana today, which is the same correct
+    degradation district and city have had since 2.47.
+  */
+  tehsil: 'tehsil',
   city: 'city',
 
   // education

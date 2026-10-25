@@ -97,6 +97,13 @@ export interface SchoolRegistrationDetail {
   districtId: number | null;
   stateId: number | null;
   pincode: string | null;
+
+  /* SR-1. Null on any registration captured before SR-1 — see ADDRESS_DESIGN §5. */
+  tehsilId: number | null;
+  areaOrVillage: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  googlePlaceId: string | null;
   principalName: string | null;
   principalMobile: string | null;
   hrContactName: string | null;
@@ -337,6 +344,17 @@ export interface SaveDraftBody {
   districtId?: number | null;
   stateId?: number | null;
   pincode?: string | null;
+
+  /*
+    SR-1 address columns. All optional: tehsil and the village name are
+    optional by design (ADDRESS_DESIGN §2), and the coordinates and place id
+    only exist when the address came through Places rather than the cascade.
+  */
+  tehsilId?: number | null;
+  areaOrVillage?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  googlePlaceId?: string | null;
   principalName?: string | null;
   principalMobile?: string | null;
   hrContactName?: string | null;
