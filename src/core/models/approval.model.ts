@@ -112,6 +112,21 @@ export interface SchoolRegistrationDetail {
   contactMobile: string | null;
   website: string | null;
   aboutSchool: string | null;
+
+  /**
+   * 🔴 SR-4. The plan the school ASKED FOR while registering. A preference.
+   *
+   * ⚠️ IT IS NOT WHAT THE ACCOUNT IS ON. The account is provisioned on the
+   * free plan whatever this says, and a paid value becomes a pending
+   * plan-change request an admin has to verify a payment against. A screen
+   * that renders this as "your plan" would be claiming a school bought
+   * something it has not.
+   *
+   * `null` on every registration captured before SR-4, and on a draft that has
+   * not reached the review step — which is NOT the same as `'SCHOOL_FREE'`,
+   * meaning the question was asked and Free was the answer.
+   */
+  requestedPlanCode: string | null;
 }
 
 export interface TeacherRegistrationDetail {
@@ -363,6 +378,21 @@ export interface SaveDraftBody {
   contactMobile?: string | null;
   website?: string | null;
   aboutSchool?: string | null;
+
+  /**
+   * 🔴 SR-4. The plan code the school chose. `'SCHOOL_FREE'` is pre-selected.
+   *
+   * ⚠️ A CODE, never a `planId` (2.47). A draft outlives any surrogate id —
+   * the form is started at a desk and finished on a phone that evening — and
+   * the code is what every seed file and build guard keys on.
+   *
+   * 🔴 SENDING A PAID CODE BUYS NOTHING. The server records it on the draft,
+   * the account is still provisioned on the free plan, and a pending
+   * plan-change request is opened beside it at approval. The server refuses a
+   * code that is not a public, active school plan rather than silently
+   * storing nothing.
+   */
+  requestedPlanCode?: string | null;
 }
 
 export interface SaveDraftResult {

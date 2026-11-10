@@ -31,6 +31,7 @@
       [attr.aria-activedescendant]="open() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
       [attr.aria-invalid]="hasError()"
       [attr.aria-describedby]="describedBy()"
+      [attr.aria-label]="label() ? null : (ariaLabel() ?? null)"
       [attr.aria-busy]="loading() ? 'true' : null"
       [attr.readonly]="searchable() ? null : ''"
       (focus)="onFocus()"
@@ -57,7 +58,32 @@
     <span class="cmb__chevron" aria-hidden="true"></span>
 
     @if (open()) {
-      <ul class="cmb__list" role="listbox" [id]="listId">
+      <!--
+        🔴 PINNED TO THE VIEWPORT, NOT LAID OUT IN THE PAGE.
+
+        An absolutely-positioned list is laid out inside its scrolling
+        ancestor, so inside <ui-modal> — whose body is overflow-y: auto — it
+        made the dialog taller and had to be scrolled to rather than floating
+        over it. position: fixed, placed from the input's own rect, overlays
+        the modal's content the way a dropdown is supposed to.
+
+        ⚠️ THE <ul> HAS NOT MOVED IN THE DOM. It is still a child of .cmb,
+        inside this component, and that is exactly what keeps blur, the
+        outside click, Escape, the arrow keys, aria-activedescendant and the
+        clear button's mousedown-before-blur trick working unchanged. What
+        changed is where the browser paints it, not where the events go.
+      -->
+      <ul
+        class="cmb__list"
+        role="listbox"
+        [id]="listId"
+        [class.cmb__list--pinned]="listBox() !== null"
+        [style.top.px]="listBox()?.top"
+        [style.bottom.px]="listBox()?.bottom"
+        [style.left.px]="listBox()?.left"
+        [style.width.px]="listBox()?.width"
+        [style.max-height.px]="listBox()?.maxHeight"
+      >
         @for (option of visible(); track option.value; let i = $index) {
           <li
             class="cmb__option"

@@ -89,6 +89,33 @@
     box-shadow: var(--jp-shadow-lg);
   }
 
+  // ---- the pinned list ------------------------------------------------------
+  //
+  // 🔴 WHAT FIXED BUYS, AND WHAT IT HAS TO UNDO.
+  //
+  // The rule above is laid out inside the nearest positioned ancestor, which
+  // inside ui-modal is a box with overflow-y: auto — so the open list made the
+  // dialog taller instead of overlaying it. A fixed box is laid out against
+  // the viewport and no ancestor's overflow clips it, so it floats.
+  //
+  // ⚠️ The coordinates arrive from measure() as inline styles. This class only
+  // has to give back the offsets the absolute rule set, because a fixed box
+  // inherits them too and against the viewport they mean something else
+  // entirely.
+  &__list--pinned {
+    position: fixed;
+
+    // 🔴 ALL THREE MATTER. top: calc(100% + …) against the viewport is a list
+    // one screen below the fold; right: 0 with a width set stretches it to the
+    // edge of the screen; and a box with BOTH top and bottom set is stretched
+    // between them rather than sized to its content, which is what would
+    // happen to an upward-flipped list. Whichever of top/bottom measure()
+    // supplies arrives inline and wins over auto.
+    top: auto;
+    right: auto;
+    bottom: auto;
+  }
+
   &__option {
     padding: v.$space-2;
     border-radius: var(--jp-radius-sm);
@@ -124,6 +151,11 @@
 
 // On a phone the list is taller than the keyboard leaves room for, so it is
 // capped lower — the same number ui-multi-select uses, for the same reason.
+//
+// ⚠️ THIS IS THE CAP FOR THE UNPINNED FALLBACK ONLY. A pinned list gets its
+// max-height inline from measure(), which applies the same 12rem below the
+// same 36rem breakpoint — the two numbers are deliberately the same, and
+// LIST_MAX_SMALL / SMALL_VIEWPORT in the component are where they are kept.
 @media (max-width: 36rem) {
   .cmb__list {
     max-height: 12rem;

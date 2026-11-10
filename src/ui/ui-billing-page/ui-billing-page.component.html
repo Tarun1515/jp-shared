@@ -69,6 +69,74 @@
     }
 
     <!--
+      ===================================================================
+      🔴 SR-4: A REQUEST ALREADY AWAITING PAYMENT, FROM WHENEVER IT WAS MADE
+      ===================================================================
+
+      The banner above describes what this page did a moment ago. This one
+      describes what the DATABASE says, which is the only version that
+      survives a reload — and the only version a school registered with a paid
+      plan has ever had, because its request was opened by the approval, not by
+      this screen.
+
+      🔴 IT SAYS THE PLAN IS NOT ACTIVE, IN SO MANY WORDS. The panel below
+      names the free plan and shows the free plan's allowances, so this banner's
+      job is to join those two facts up: you asked for Standard, you are on
+      Free, and here is why. A banner that only said "Standard requested" beside
+      a panel reading "Free" would leave the reader to guess which is true.
+
+      ⚠️ Hidden while `requested()` is set, so a school that just pressed the
+      button is not told the same thing twice in two different tenses.
+    -->
+    @if (openRequest(); as pending) {
+      @if (!requested()) {
+        <div class="banner banner--warning" role="status">
+          <div>
+            <strong>
+              You asked for {{ pending.planName }} — it is not active yet.
+            </strong>
+            <p>
+              This account is on its free plan, and the allowances below are the
+              free ones. Nothing changes until we have confirmed your payment.
+            </p>
+            <p>
+              Pay by bank transfer, cheque or cash and an administrator will
+              confirm it, usually within a working day of the money arriving.
+              Quote <strong>{{ pending.requestNo }}</strong> when you pay or if
+              you need to ask us about it.
+            </p>
+
+            @if (pending.priceQuoted !== null) {
+              <!--
+                ⚠️ THE FIGURE THAT WAS QUOTED, not today's catalogue price.
+                Prices are data and will change (2.7); re-deriving the amount
+                from the catalogue would silently restate what was agreed.
+              -->
+              <p>
+                The amount recorded against this request is
+                <strong>₹{{ pending.priceQuoted.toLocaleString('en-IN') }}</strong>,
+                asked for on {{ day(pending.submittedOn) }}.
+              </p>
+            }
+
+            @if (pricesArePlaceholders()) {
+              <!--
+                🔴 THE PRICE ON SCREEN IS A PLACEHOLDER AND SAYS SO.
+
+                013_seed_school_plans.sql: the client asked for dummy figures to
+                get the mechanism working, and the marker lives in the plan NAME
+                because a customer reads the name. This sentence is the FAQ's own
+                wording, so there is one caveat in the product rather than two
+                that can drift apart.
+              -->
+              <p class="note">{{ pricingHedge }}</p>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!--
       🔴 AND THE SAME WAY BACK BEFORE THEY CHOOSE ANYTHING.
 
       Somebody who came here from a quota wall, read the plans and decided not
@@ -301,6 +369,26 @@
       <h2 class="bill__section-title">Other plans</h2>
 
       <!--
+        🔴 SR-4: THE PRICES BELOW ARE PLACEHOLDERS, AND THE SCREEN SAYS SO.
+
+        013_seed_school_plans.sql seeds ₹1,499 and ₹3,999 because the client
+        asked for dummy figures to get the mechanism working, and it puts
+        "(SAMPLE PRICING)" in the plan NAME because a customer reads the name
+        and nobody reads a seed file's comment. A build guard in that file fails
+        if the marker is dropped while the prices are still placeholders.
+
+        ⚠️ This sentence is the public FAQ's own wording (003_seed_public_faqs),
+        not a second phrasing of the same caveat — the one that would go stale is
+        the one in the code, and the FAQ is data the client can read.
+
+        ⚠️ Conditional on the marker, so it disappears by itself the day the
+        real list arrives and 013 drops the marker in the same commit.
+      -->
+      @if (pricesArePlaceholders()) {
+        <p class="note">{{ pricingHedge }}</p>
+      }
+
+      <!--
         🔒 2.62's "NOT ALLOWED": the control is REMOVED and the reason given.
 
         A disabled "Request this plan" would say "not yet" — which is false; it
@@ -320,11 +408,16 @@
 
       @if (nothingToChangeTo()) {
         <!--
-          🔴 TRUE ON THE DAY THIS SHIPS, AND SAID PLAINLY.
+          🔴 TRUE WHEN THE CATALOGUE REALLY HOLDS NOTHING ELSE, AND SAID PLAINLY.
 
-          Only the free plan is seeded, because pricing is not finalised and a
-          price we ship gets quoted back at us (008_seed_plans.sql). An empty
-          chooser with a disabled button would imply plans exist and are
+          This was true for everybody on the day 6.5 shipped: only the free plan
+          was seeded, because pricing was not finalised and a price we ship gets
+          quoted back at us (008_seed_plans.sql). SR-4 seeded two school tiers on
+          the client's instruction, so it is now false for a school and still
+          true for a teacher — and the sentence is correct in both cases because
+          it describes the catalogue rather than the phase.
+
+          An empty chooser with a disabled button would imply plans exist and are
           temporarily unavailable, which is not what is happening.
         -->
         <p class="note">

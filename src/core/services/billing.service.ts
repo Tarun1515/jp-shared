@@ -96,6 +96,63 @@ export interface PlanChangeRequested {
   priceQuoted: number;
 }
 
+/**
+ * 🔴 SR-4. An open plan change: asked for, not paid for, nothing granted.
+ *
+ * ----------------------------------------------------------------------------
+ * 🔴 WHY THIS SHAPE HAD TO BECOME READABLE
+ * ----------------------------------------------------------------------------
+ * 6.5B only ever learned about a pending request from the POST that created
+ * it, so a reload made the account go quiet about money it had promised. That
+ * was survivable while the only way to get one was to press the button
+ * yourself.
+ *
+ * SR-4 lets REGISTRATION create one: a school picks a paid plan on the form,
+ * is approved days later, and the first time it ever sees the request is a
+ * login on another device with no response to remember. So the state is read
+ * from the server, not kept in a signal that a refresh empties.
+ *
+ * ----------------------------------------------------------------------------
+ * 🔴 WHAT IS DELIBERATELY ABSENT
+ * ----------------------------------------------------------------------------
+ * Any allowance, quota or usage field. A pending request grants nothing, and a
+ * shape that carried capability beside an unpaid intention is how a screen
+ * starts implying a school bought something it has not. What the account can
+ * actually do is `CurrentPlan`, and on this path that is the free plan.
+ */
+export interface OpenPlanChange {
+  requestId: number;
+
+  /** The reference to quote when ringing about the money (2.46). */
+  requestNo: string;
+  submittedOn: string;
+  paymentId: number;
+  paymentUid: string;
+  planId: number;
+  planCode: string;
+
+  /**
+   * 🔴 The name AS THE CATALOGUE HOLDS IT.
+   *
+   * While the figures are placeholders every paid plan is named
+   * "Standard (SAMPLE PRICING)" — the marker is in the NAME because a customer
+   * reads the name and nobody reads a seed file's comment, and a build guard
+   * fails if it disappears while the prices are still dummy. Tidying it on a
+   * screen would defeat that guard from outside the database.
+   */
+  planName: string;
+
+  durationDays: number | null;
+
+  /** 🔴 What was AGREED, not what the catalogue says today (2.7). */
+  priceQuoted: number | null;
+
+  /** What is recorded — the expected figure, until an admin replaces it. */
+  amount: number;
+  paymentModeId: number;
+  paymentModeName: string;
+}
+
 /** One subscription the account has held, past or present. */
 export interface SubscriptionHistoryRow {
   subscriptionId: number;
@@ -152,6 +209,14 @@ export class BillingService {
   private readonly loadingSignal = signal(false);
 
   /**
+   * 🔴 SR-4. The account's open plan change, read from the server.
+   *
+   * ⚠️ `null` is the ordinary state and renders as nothing at all. It must not
+   * render as a failure: most accounts owe nothing most of the time.
+   */
+  private readonly openRequestSignal = signal<OpenPlanChange | null>(null);
+
+  /**
    * 🔴 A FAILED READ IS NOT AN EMPTY ACCOUNT.
    *
    * "You are on no plan" and "we could not ask" are different statements, and
@@ -165,6 +230,9 @@ export class BillingService {
   readonly history = this.historySignal.asReadonly();
   readonly isLoading = this.loadingSignal.asReadonly();
   readonly hasFailed = this.failedSignal.asReadonly();
+
+  /** 🔴 SR-4. Asked for, not paid for. See {@link OpenPlanChange}. */
+  readonly openRequest = this.openRequestSignal.asReadonly();
 
   /**
    * The plans this account could move TO — the catalog minus the one it is on.
@@ -182,10 +250,13 @@ export class BillingService {
   /**
    * ⚠️ True when the catalog holds nothing to move to.
    *
-   * On the day 6.5 ships this is TRUE for everybody: only the free plan is
-   * seeded, because pricing is not finalised and a price we ship gets quoted
-   * back (008_seed_plans.sql). The screen says so plainly instead of offering
-   * an empty chooser.
+   * On the day 6.5 shipped this was TRUE for everybody: only the free plan was
+   * seeded, because pricing was not finalised and a price we ship gets quoted
+   * back (008_seed_plans.sql). SR-4 seeded two paid tiers on the client's
+   * instruction, with PLACEHOLDER figures that say so in the plan NAME — so
+   * this is now false for a school and still true for a teacher, and the
+   * screen says the honest thing in both cases rather than offering an empty
+   * chooser.
    */
   readonly nothingToChangeTo = computed(() => this.changeableTo().length === 0);
 
@@ -193,16 +264,8 @@ export class BillingService {
     this.loadingSignal.set(true);
     this.failedSignal.set(false);
 
-    this.http
-      .get<ApiResponse<Plan[]>>(`${this.api.appApiUrl}/billing/plans`)
-      .pipe(
-        map((r) => r.data ?? []),
-        catchError(() => {
-          this.failedSignal.set(true);
-          return of([] as Plan[]);
-        }),
-      )
-      .subscribe((plans) => this.plansSignal.set(plans));
+    this.loadPlans();
+    this.loadOpenRequest();
 
     this.http
       .get<ApiResponse<CurrentPlan | null>>(`${this.api.appApiUrl}/billing/my-plan`)
@@ -225,6 +288,64 @@ export class BillingService {
         catchError(() => of([] as SubscriptionHistoryRow[])),
       )
       .subscribe((rows) => this.historySignal.set(rows));
+  }
+
+  /**
+   * 🔴 SR-4. The catalog ALONE, for a caller that has no account yet.
+   *
+   * ----------------------------------------------------------------------------
+   * 🔴 WHY THIS IS SEPARATE FROM load()
+   * ----------------------------------------------------------------------------
+   * The registration form needs the plans, and the school filling it in has no
+   * organisation, no subscription and no history — it is applying to exist.
+   * Calling `load()` there would fire `/billing/my-plan` and
+   * `/billing/my-history` for an account that legitimately has neither, set
+   * `hasFailed`, and paint "your plan could not be loaded" across a form about
+   * something else entirely.
+   *
+   * ⚠️ `load()` CALLS THIS rather than repeating the request, so there is one
+   * place that knows the catalog's URL and its failure rule.
+   */
+  loadPlans(): void {
+    this.http
+      .get<ApiResponse<Plan[]>>(`${this.api.appApiUrl}/billing/plans`)
+      .pipe(
+        map((r) => r.data ?? []),
+        catchError(() => {
+          this.failedSignal.set(true);
+          return of([] as Plan[]);
+        }),
+      )
+      .subscribe((plans) => this.plansSignal.set(plans));
+  }
+
+  /**
+   * 🔴 SR-4. "Do I owe money, and what for?" — read, never remembered.
+   *
+   * ----------------------------------------------------------------------------
+   * ⚠️ A FAILURE HERE DOES NOT SET hasFailed
+   * ----------------------------------------------------------------------------
+   * `hasFailed` makes the whole billing screen say "your plan could not be
+   * loaded", and a pending request is an EXTRA that most accounts do not have.
+   * Taking the screen down because this one read failed would hide the plan
+   * panel, which is the thing the person actually came for.
+   *
+   * ⚠️ So a failure leaves the signal null — "nothing pending" — which is the
+   * same thing it says for the overwhelming majority of accounts. That is the
+   * right trade in ONE direction only: a request that exists and is not shown
+   * costs the school a conversation with support, while a request SHOWN that
+   * does not exist would be a demand for money nobody owes.
+   */
+  loadOpenRequest(): void {
+    this.http
+      .get<ApiResponse<OpenPlanChange | null>>(
+        `${this.api.appApiUrl}/billing/my-pending-change`,
+      )
+      .pipe(
+        map((r) => r.data ?? null),
+        catchError(() => of(null)),
+      )
+      .subscribe((pending) => this.openRequestSignal.set(pending));
   }
 
   /**

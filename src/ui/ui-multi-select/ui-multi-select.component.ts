@@ -87,6 +87,18 @@ export class UiMultiSelectComponent extends UiFormControlBase<(string | number)[
    */
   readonly itemNoun = input('');
 
+  /**
+   * The accessible name, for a toolbar that wants no visible label.
+   *
+   * ⚠️ SAME INPUT, SAME RULE AS `ui-combobox` — this component owns its own
+   * `controlId`, so an outside `<label for>` cannot reach the trigger button.
+   * A filter toolbar that drops the label and passes nothing leaves a screen
+   * reader announcing a button with no name at all.
+   *
+   * Prefer `label` in a form. Ignored when `label` is set.
+   */
+  readonly ariaLabel = input<string>();
+
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
   protected readonly isOpen = signal(false);

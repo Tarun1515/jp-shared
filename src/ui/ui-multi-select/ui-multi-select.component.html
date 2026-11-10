@@ -25,6 +25,7 @@
     aria-haspopup="listbox"
     [attr.aria-invalid]="hasError()"
     [attr.aria-describedby]="describedBy()"
+    [attr.aria-label]="label() ? null : (ariaLabel() ?? null)"
     (click)="toggleOpen()"
     (keydown)="onTriggerKeydown($event)"
   >

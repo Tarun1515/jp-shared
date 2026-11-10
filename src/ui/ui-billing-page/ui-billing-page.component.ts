@@ -109,6 +109,25 @@ export class UiBillingPageComponent {
     this.auth.hasPermission('BILLING.MANAGE'));
 
   protected readonly current = this.billing.current;
+
+  /**
+   * 🔴 SR-4. A plan change already awaiting payment, READ from the server.
+   *
+   * ----------------------------------------------------------------------------
+   * 🔴 WHY THIS IS NOT THE SAME THING AS `requested()`
+   * ----------------------------------------------------------------------------
+   * `requested()` is what THIS page did a moment ago, held in a signal, gone on
+   * reload. That was adequate while the only way to acquire a pending request
+   * was to press the button on this screen.
+   *
+   * SR-4 made registration able to create one: a school picks a paid plan on
+   * the form, is approved days later, and signs in with a request it has never
+   * seen. Without this read the billing screen would show that school the free
+   * plan and say nothing about the money it had promised — which is exactly how
+   * somebody concludes their payment was lost.
+   */
+  protected readonly openRequest = this.billing.openRequest;
+
   protected readonly plans = this.billing.plans;
   protected readonly history = this.billing.history;
   protected readonly loading = this.billing.isLoading;
@@ -141,6 +160,36 @@ export class UiBillingPageComponent {
   ];
 
   protected readonly chosenMode = signal(2);
+
+  /**
+   * 🔴 SR-4. The hedge, in the words the public FAQ already uses.
+   *
+   * The seeded FAQ answer to "What does it cost?" is: "Pricing is not
+   * finalised. If you are registering now, talk to us first so there are no
+   * surprises later." (jp_app/03_seed/003_seed_public_faqs.sql.)
+   *
+   * ⚠️ MIRRORED, NOT REWORDED. A second form of the same caveat is a second
+   * thing to keep in step, and the one that would go stale is this one — the
+   * FAQ is seeded data the client can see.
+   *
+   * ⚠️ IT IS THE SECOND LINE OF DEFENCE, NOT THE FIRST. The plan NAMES carry
+   * "(SAMPLE PRICING)" and a build guard in 013_seed_school_plans.sql fails if
+   * that marker is removed while the prices are still placeholders. This
+   * sentence explains what the marker means; it does not replace it.
+   */
+  protected readonly pricingHedge =
+    'Pricing is not finalised. If you are registering now, talk to us first so '
+    + 'there are no surprises later.';
+
+  /**
+   * ⚠️ True while any paid plan on offer still carries the placeholder marker.
+   *
+   * Read off the catalogue rather than hardcoded, so the hedge disappears on
+   * its own the day the real prices land and 013 drops the marker from the
+   * names — in the same commit, which is what that file's guard insists on.
+   */
+  protected readonly pricesArePlaceholders = computed(() =>
+    this.plans().some((p) => p.price > 0 && p.name.includes('SAMPLE PRICING')));
 
   /**
    * 🔴 Why the panel might be describing a plan the account is not paying for.
