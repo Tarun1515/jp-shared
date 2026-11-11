@@ -35,6 +35,13 @@ export * from '../ui/ui-checkbox/ui-checkbox.component';
   select over master data is a tag change — which is what makes doing it
   everywhere a job somebody can finish.
 */
+/*
+  The address type-ahead. Progressive over the manual cascade, never a
+  replacement: it renders only when the API says a provider is configured, and
+  every refusal — a quota 429, a timeout, a provider that says no — leaves the
+  dropdowns below exactly as they were.
+*/
+export * from '../ui/ui-address-search/ui-address-search.component';
 export * from '../ui/ui-combobox/ui-combobox.component';
 export * from '../ui/ui-datepicker/ui-datepicker.component';
 export * from '../ui/ui-empty-state/ui-empty-state.component';

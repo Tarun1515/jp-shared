@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -56,13 +56,53 @@ const COMPONENT_RENDERED_CODES = new Set<string>([
   'JOB_EXPIRED',
 ]);
 
+/**
+ * Opt out of the toast for ONE request. The error is still rethrown.
+ *
+ * <pre>
+ * this.http.get(url, { context: new HttpContext().set(SKIP_ERROR_TOAST, true) })
+ * </pre>
+ *
+ * ----------------------------------------------------------------------------
+ * 🔴 WHY THIS EXISTS: TWO SERVICES INDEPENDENTLY ROUTED AROUND THIS FILE
+ * ----------------------------------------------------------------------------
+ * The address lookup is a KEYSTROKE path whose contract is to fail quietly: a
+ * 429 from the quota limiter, a timeout, a provider that refuses — every one of
+ * them means "no suggestions", and the form carries on with its dropdowns. A
+ * toast saying "Too many attempts" there is a bug report shown to somebody who
+ * is simply typing their address.
+ *
+ * With no opt-out, both the school and the teacher sides built their own
+ * `HttpClient` over `HttpBackend` to escape this interceptor — which also
+ * escapes the auth interceptor and the loader, and each had to re-attach the
+ * bearer token by hand. Two copies of a workaround is this file's problem, not
+ * theirs.
+ *
+ * ⚠️ IT SILENCES THE TOAST, NOT THE ERROR. `catchError` still rethrows, so a
+ * caller that wants to handle the failure still receives it. A request that
+ * sets this is promising to deal with the failure itself — the same promise
+ * `COMPONENT_RENDERED_CODES` above makes per code, made per request instead.
+ */
+export const SKIP_ERROR_TOAST = new HttpContextToken<boolean>(() => false);
+
 export const errorInterceptor: HttpInterceptorFn = (request, next) => {
   const toast = inject(ToastService);
   const router = inject(Router);
   const auth = inject(AuthService);
 
+  const quiet = request.context.get(SKIP_ERROR_TOAST);
+
   return next(request).pipe(
     catchError((error: unknown) => {
+      /*
+        ⚠️ BEFORE ANYTHING ELSE, INCLUDING THE 401 HANDLING BELOW. A quiet
+        request wants the error back and nothing on screen — not a toast, not a
+        redirect fired from under a form somebody is filling in.
+      */
+      if (quiet) {
+        return throwError(() => error);
+      }
+
       if (!(error instanceof HttpErrorResponse)) {
         return throwError(() => error);
       }

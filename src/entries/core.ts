@@ -18,6 +18,14 @@ export * from '../core/app-identity';
 
 // ---- services ---------------------------------------------------------------
 export * from '../core/services/app-access.service';
+/*
+  🔴 ONE address lookup, not one per app. The school side and the teacher side
+  both reach the same three anonymous endpoints, and both were written at once
+  in their own repositories before this was merged here — two mirrors of one
+  server contract, which is what G27 forbids. Unlike jp-public's combobox there
+  is no federation boundary to justify a twin: both apps import this file.
+*/
+export * from '../core/services/address-lookup.service';
 export * from '../core/services/auth.service';
 export * from '../core/services/loader.service';
 export * from '../core/services/master.service';

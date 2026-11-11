@@ -1,0 +1,160 @@
+@use 'variables' as v;
+@use 'mixins' as m;
+
+/*
+  🔴 THE HOST TAKES NO SPACE UNTIL THERE IS SOMETHING IN IT.
+
+  `<app-address-search>` is written in the caller's template, so the ELEMENT is
+  in the DOM whatever `available()` says — only its contents are conditional.
+  An empty block would be harmless in a stack, but in the campus dialog it is a
+  `.form-grid` cell: an empty full-width grid item still occupies a row, and the
+  grid's 1rem gap still spaces that row. The dialog would gain a hole that
+  nothing was in, on every deployment with no Places key — which is today's.
+
+  So the host hides itself unless the host binding says it has rendered. Done
+  here rather than in each caller's stylesheet, because "this control leaves no
+  trace when it is unavailable" is a promise of the control, not of its callers.
+*/
+:host {
+  display: none;
+}
+
+:host(.addr-search--active) {
+  display: block;
+}
+
+// -----------------------------------------------------------------------------
+// THE BOX
+//
+// The input is .form-control, so the focus ring, the hover border, the disabled
+// state and the 16px minimum type size all come from _forms.scss rather than
+// being restated here and drifting from every other field on the form. The
+// same reasoning <ui-combobox> gives for its own input.
+// -----------------------------------------------------------------------------
+.addr-search__box {
+  position: relative;
+}
+
+.addr-search__input {
+  // Room for the spinner, so a long query does not run underneath it.
+  padding-right: 2.75rem;
+  text-overflow: ellipsis;
+}
+
+// -----------------------------------------------------------------------------
+// THE SPINNER
+//
+// Drawn with a border rather than borrowed from an icon font: one glyph is how
+// a component acquires a dependency its host has to remember to load.
+// -----------------------------------------------------------------------------
+.addr-search__busy {
+  position: absolute;
+  top: 50%;
+  right: v.$space-3;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.5rem;
+  border: 2px solid var(--jp-border-strong);
+  border-top-color: var(--jp-primary);
+  border-radius: var(--jp-radius-full);
+  animation: addr-search-spin 0.65s linear infinite;
+  pointer-events: none;
+
+  // ⚠️ Slowed rather than stopped. A still ring reads as a control that is
+  // stuck; what the preference asks for is less movement, not none.
+  @include m.reduced-motion {
+    animation-duration: 2s;
+  }
+}
+
+@keyframes addr-search-spin {
+  to { transform: rotate(360deg); }
+}
+
+// -----------------------------------------------------------------------------
+// THE LIST
+//
+// 🔴 ABSOLUTE, NOT FIXED — and that is a decision, not an oversight. See the
+// long note in the component: <ui-combobox> pins its list to the viewport
+// because it can be dropped anywhere, including the foot of a scrolling modal.
+// This control sits at the top of both forms that use it, where the list is
+// inside the dialog's visible area. Moving it low in a dialog is what would
+// make measure() necessary.
+//
+// ⚠️ Every other value matches <ui-combobox>'s panel deliberately — same
+// offset, same radius, same shadow, same max-height. Two dropdowns in one
+// design system that sit at different offsets is exactly the drift G27 is
+// about.
+// -----------------------------------------------------------------------------
+.addr-search__list {
+  @include m.custom-scrollbar;
+
+  position: absolute;
+  top: calc(100% + #{v.$space-1});
+  left: 0;
+  right: 0;
+  z-index: var(--jp-z-dropdown);
+  max-height: 15rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: v.$space-1;
+  list-style: none;
+  background: var(--jp-surface);
+  border: 1px solid var(--jp-border-strong);
+  border-radius: var(--jp-radius-md);
+  box-shadow: var(--jp-shadow-lg);
+}
+
+.addr-search__option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: v.$space-2;
+  border-radius: var(--jp-radius-sm);
+  cursor: pointer;
+
+  // Keyboard and mouse share ONE highlight. Two different "current" rows — one
+  // under the pointer, one under the arrow keys — is a control where Enter
+  // does something other than what is highlighted.
+  &--active {
+    background: var(--jp-primary-soft);
+
+    .addr-search__main { color: var(--jp-primary-800); }
+  }
+}
+
+.addr-search__main {
+  font-size: var(--jp-font-size-sm);
+  color: var(--jp-text);
+}
+
+.addr-search__secondary {
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+}
+
+// -----------------------------------------------------------------------------
+// THE STATUS LINE
+//
+// ⚠️ NO MARGIN, PADDING OR BACKGROUND ON THE BASE RULE. The element is always
+// in the DOM so the live region is never recreated, and an empty one has to
+// take up no room at all — no content means no line box, so the only thing
+// that could add height is spacing. `--shown` puts it back.
+//
+// ⚠️ NOT .field__error, AND NOT RED. An unmatched district is a gap in our
+// masters with a perfectly usable form underneath it. Red text would tell
+// somebody mid-registration that they had done something wrong.
+// -----------------------------------------------------------------------------
+.addr-search__status {
+  margin: 0;
+  font-size: var(--jp-font-size-xs);
+  line-height: var(--jp-line-height-snug);
+  color: var(--jp-text-muted);
+
+  &--shown { margin-top: v.$space-1; }
+
+  &--note {
+    color: var(--jp-text);
+    font-weight: var(--jp-font-weight-medium);
+  }
+}

@@ -1,0 +1,168 @@
+<!--
+  🔴 THE WHOLE CONTROL IS BEHIND `available()`, AND THAT IS THE FEATURE.
+
+  `available: false` is today's shipped answer — AddressLookupOptions.Provider
+  defaults to `None` until the client's key is installed — and it renders
+  NOTHING AT ALL. Not a disabled box, not a box that returns nothing, not a
+  note about a feature nobody asked for. The form below is exactly the form it
+  was before this control existed.
+
+  It is the same rule 2.47 applies to the district dropdown: a control that can
+  never produce a result is worse than no control.
+-->
+@if (available()) {
+  <div class="field addr-search">
+    <label class="field__label" [for]="controlId">
+      {{ label() }}
+      <!--
+        ⚠️ MARKED OPTIONAL, BECAUSE IT GENUINELY IS. Nothing validates this box
+        and nothing about submitting the form touches it. The convention is the
+        design system's own (_forms.scss): in this product nearly everything is
+        required, so the few optional fields are the ones worth marking.
+      -->
+      <span class="field__optional">optional</span>
+    </label>
+
+    <div class="addr-search__box">
+      <!--
+        The ARIA pattern is <ui-combobox>'s, which is jp-shared's and is not
+        touched by this change: role on the INPUT (the thing that takes focus,
+        not a wrapper a screen reader cannot reach), aria-expanded /
+        aria-controls / aria-activedescendant naming the open list and the
+        active row, and aria-autocomplete="list" because what we offer is a
+        list of suggestions rather than an inline completion of what they typed.
+
+        ⚠️ autocomplete="off" AND AN id THAT DOES NOT READ AS AN ADDRESS FIELD.
+        Browsers autofill anything address-shaped, and the browser's own
+        dropdown lands over this one — two lists on one box, with the arrow keys
+        going to whichever the browser thinks owns them.
+
+        ⚠️ type="text", NOT type="search". A search input draws a browser clear
+        button whose click lands outside this component's event handling, and
+        on iOS it relabels the keyboard's return key.
+      -->
+      <input
+        class="form-control addr-search__input"
+        type="text"
+        role="combobox"
+        autocomplete="off"
+        spellcheck="false"
+        [id]="controlId"
+        [value]="query()"
+        placeholder="Start typing, e.g. Sector 14, Gurugram"
+        [attr.aria-expanded]="open()"
+        [attr.aria-controls]="listId"
+        aria-autocomplete="list"
+        [attr.aria-activedescendant]="open() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
+        [attr.aria-describedby]="controlId + '-helper ' + statusId"
+        [attr.aria-busy]="searching() || resolving() ? 'true' : null"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keydown)="onKey($event)"
+      />
+
+      <!--
+        ⚠️ aria-hidden, BECAUSE aria-busy ON THE INPUT ALREADY SAYS IT. Two
+        announcements for one event is worse than one, and a spinner is not a
+        thing anybody needs described.
+
+        🔴 IT IS NOT AN ERROR STATE AND NEVER BECOMES ONE. It appears while a
+        request is out and disappears when the answer arrives, whatever the
+        answer was — a 429, a timeout and an empty list all simply stop the
+        spinner and leave the list shut.
+      -->
+      @if (searching() || resolving()) {
+        <span class="addr-search__busy" aria-hidden="true"></span>
+      }
+
+      @if (open()) {
+        <!--
+          🔴 ONLY role="option" CHILDREN LIVE IN HERE. `aria-required-children`
+          allows nothing else inside a listbox, which is why there is no "no
+          matches" row and no "searching" row: when there is nothing to offer,
+          the list is not rendered at all (see `open` in the component).
+        -->
+        <ul class="addr-search__list" role="listbox" [id]="listId">
+          @for (suggestion of suggestions(); track suggestion.placeId; let i = $index) {
+            <!--
+              ⚠️ (mousedown) preventDefault, THEN (click). mousedown fires
+              before blur, so without this the blur handler closes the list and
+              the click lands on nothing — the row would look like it did not
+              work. The same trick <ui-combobox> uses on its own options.
+            -->
+            <li
+              class="addr-search__option"
+              role="option"
+              [id]="optionId(i)"
+              [class.addr-search__option--active]="i === activeIndex()"
+              [attr.aria-selected]="i === activeIndex()"
+              (mousedown)="$event.preventDefault()"
+              (click)="choose(suggestion)"
+            >
+              <!--
+                ⚠️ THE PROVIDER'S OWN TEXT, RENDERED AS IT ARRIVED. No
+                re-casing, no truncation of the script, no ASCII fallback — a
+                Devanagari locality name has to read the way the person typed
+                it. `mainText` / `secondaryText` are only present when the
+                provider split them; `description` is always there.
+              -->
+              @if (suggestion.mainText) {
+                <span class="addr-search__main">{{ suggestion.mainText }}</span>
+                @if (suggestion.secondaryText) {
+                  <span class="addr-search__secondary">{{ suggestion.secondaryText }}</span>
+                }
+              } @else {
+                <span class="addr-search__main">{{ suggestion.description }}</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!--
+      🔴 THE HELPER SAYS THE DROPDOWNS STILL WORK, in so many words.
+
+      This box is an addition. Somebody who types two letters, gets nothing, and
+      concludes the form is broken has been failed by the copy — so the sentence
+      that is always true is the one that is printed: the boxes below are yours
+      to fill in either way.
+    -->
+    <span class="field__helper" [id]="controlId + '-helper'">
+      Pick a suggestion and we will fill in the boxes below. You can always fill
+      them in yourself.
+    </span>
+
+    <!--
+      🔴 role="status" + aria-live="polite", AND IT IS ALWAYS IN THE DOM.
+
+      Picking a suggestion changes five controls further down the page without
+      moving focus, which a screen-reader user would otherwise never learn
+      about. A live region has to exist BEFORE the text is written into it —
+      one created and filled in the same change is often not announced at all.
+
+      ⚠️ THE UNMATCHED SENTENCE IS NOT AN ERROR AND IS NOT STYLED AS ONE. "We
+      could not find the district 'Faridabad Division' in our lists" is a fact
+      about our masters, with a usable form underneath it. Red text here would
+      read as "you did something wrong", and the one thing somebody mid-
+      registration must not be told is that they have broken something.
+    -->
+    <!--
+      ⚠️ THE ELEMENT IS ALWAYS THERE AND COLLAPSES TO NOTHING WHEN EMPTY. Its
+      base rule carries no margin, padding or background, so an empty status
+      generates no line box and takes no space; `--shown` adds the spacing back
+      when there is something to read. An `@if` around it would destroy and
+      recreate the live region, which is the reliable way to have an
+      announcement swallowed.
+    -->
+    <p
+      class="addr-search__status"
+      [class.addr-search__status--shown]="status() !== null"
+      [class.addr-search__status--note]="hasUnmatched()"
+      role="status"
+      aria-live="polite"
+      [id]="statusId"
+    >{{ status() }}</p>
+  </div>
+}
