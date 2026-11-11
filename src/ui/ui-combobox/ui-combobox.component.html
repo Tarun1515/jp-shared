@@ -104,7 +104,25 @@
             empty master is ours. Telling them apart is the difference between
             "try another spelling" and "this list is not loaded yet".
           -->
-          <li class="cmb__empty" role="status">
+          <!--
+            ⚠️ role="option", NOT role="status", AND THAT IS A SPEC FIX.
+
+            A listbox may contain only options and groups. This line was a
+            `role="status"` sitting inside `role="listbox"`, which is an
+            `aria-required-children` violation for as long as the list is open
+            and empty. Nothing caught it: Lighthouse audits the page without
+            ever opening a dropdown.
+
+            `aria-disabled` keeps it unselectable and out of the arrow-key
+            walk, and `aria-live` keeps the announcement the old role was
+            there for — a live region can be any element, including an option.
+          -->
+          <li
+            class="cmb__empty"
+            role="option"
+            aria-disabled="true"
+            aria-live="polite"
+          >
             @if (options().length === 0) {
               Nothing to choose from yet.
             } @else {

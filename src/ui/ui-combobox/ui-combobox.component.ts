@@ -68,6 +68,39 @@ const LIST_MIN = 80;
  * `AreaOrVillage` beside it rather than letting this invent a row.
  *
  * ----------------------------------------------------------------------------
+ * 🔴 THERE IS A SECOND SEARCHABLE SELECT, AND IT IS DECLARED
+ * ----------------------------------------------------------------------------
+ *     twin:  jp-public/src/app/ui/combobox/public-combobox.component.ts
+ *
+ * G27 says there is ONE of these. jp-public has its own, deliberately: it is
+ * UNFEDERATED by decision 2.43 — no jp-shared tsconfig path, no federation
+ * config, not a line of shared JavaScript — so it cannot import this one, and
+ * 902 towns in a native dropdown on the most public page the product has could
+ * not wait for that decision to be reversed. It is progressive enhancement
+ * there: the server sends a real <select> with its options and the type-ahead
+ * replaces it after hydration, which this component has no SSR to need.
+ *
+ * 🔴 PARITY IS ASSERTED, NOT TRUSTED. The filtering and ranking rule both
+ * controls obey is held as DATA in ONE file that BOTH suites run:
+ *
+ *     jp-docs/scripts/verify/lib/combobox-vectors.mjs
+ *
+ * combobox-rank.mjs runs it against THIS component in a browser;
+ * public-combobox.mjs runs it against jp-public's own combobox-rank.ts. So
+ * narrowing `visible()` below turns the PUBLIC SITE's suite red, and a case
+ * added to the vectors obliges both sides to answer it.
+ *
+ * ⚠️ WHAT IS DELIBERATELY DIFFERENT THERE, so it does not read as drift: no
+ * `searchFrom` threshold (every public filter upgrades — a control whose
+ * keyboard behaviour changes when a master grows is worse than one that always
+ * behaves the same way); no ControlValueAccessor (the URL is that page's form);
+ * no clear button (the first row of its list is "Any subject"); it paints at
+ * most 50 rows and says so underneath; and its open list is ABSOLUTE inside a
+ * relative wrapper rather than pinned to the viewport, because the public
+ * filter bar has no scrolling ancestor to escape — so it carries none of
+ * `measure()`'s correctness burden.
+ *
+ * ----------------------------------------------------------------------------
  * 🔴 THE OPEN LIST IS PINNED TO THE VIEWPORT, NOT LAID OUT IN THE PAGE
  * ----------------------------------------------------------------------------
  * The list used to be `position: absolute` inside `.cmb`. That is correct right

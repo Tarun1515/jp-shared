@@ -303,9 +303,38 @@
 /// The one orchestrated entrance, used once per page on the top-level region.
 /// Children stagger via --jp-enter-index. Motion is 190ms ease-out and moves
 /// 6px — enough to read as arrival, not enough to be a performance.
+/// The page entrance.
+///
+/// -----------------------------------------------------------------------------
+/// 🔴 `backwards`, NOT `both` — AND THAT ONE WORD WAS A REAL BUG
+/// -----------------------------------------------------------------------------
+/// `both` keeps the animation's LAST KEYFRAME APPLIED FOREVER after it ends.
+/// The last keyframe says `transform: none`, which looks harmless — but a
+/// filled animated value is a COMPUTED transform, and it serialises as
+/// `matrix(1, 0, 0, 1, 0, 0)`. That is the identity matrix: visually nothing,
+/// and per CSS it is still "a transform other than none".
+///
+/// 🔴 An element with any transform other than `none` becomes the CONTAINING
+/// BLOCK for every `position: fixed` descendant. So `.page.enter` quietly
+/// captured every pinned dropdown in the product: `<ui-combobox>` measures the
+/// field with `getBoundingClientRect()` — viewport coordinates, correctly —
+/// and the browser then resolved those coordinates against the CARD instead of
+/// the window.
+///
+/// ⚠️ IT HID ON SHORT PAGES, WHICH IS WHY IT SHIPPED. The offset is the card's
+/// own position, so near the top of a page the list lands a little to the right
+/// and still looks plausible. Measured on the school profile, scrolled to
+/// 2067px, the list was pinned at top -1461: entirely above the viewport. The
+/// control worked, the options existed, and nobody could see them.
+///
+/// `backwards` is all this ever needed: it applies the FROM keyframe during the
+/// stagger delay, which is the flash it was guarding against, and applies
+/// nothing once the animation is done — leaving the element at its own styles,
+/// where `transform` is the keyword `none` and fixed positioning means what it
+/// says.
 @mixin enter-sequence($stagger: 45ms) {
   @media (prefers-reduced-motion: no-preference) {
-    animation: jp-enter var(--jp-transition-base) var(--jp-easing) both;
+    animation: jp-enter var(--jp-transition-base) var(--jp-easing) backwards;
     animation-delay: calc(var(--jp-enter-index, 0) * #{$stagger});
   }
 }
