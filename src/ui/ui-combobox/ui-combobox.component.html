@@ -49,7 +49,7 @@
       <button
         type="button"
         class="cmb__clear"
-        [attr.aria-label]="'Clear ' + (label() ?? 'selection')"
+        [attr.aria-label]="'Clear ' + (label() ?? ariaLabel() ?? 'selection')"
         (mousedown)="$event.preventDefault()"
         (click)="clear()"
       >×</button>

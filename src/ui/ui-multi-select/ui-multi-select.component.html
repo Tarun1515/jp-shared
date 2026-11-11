@@ -46,7 +46,7 @@
           role="combobox"
           autocomplete="off"
           placeholder="Type to filter…"
-          [attr.aria-label]="'Filter ' + (label() || 'options')"
+          [attr.aria-label]="'Filter ' + (label() || ariaLabel() || 'options')"
           [attr.aria-expanded]="true"
           [attr.aria-controls]="listboxId"
           [attr.aria-activedescendant]="activeOptionId()"

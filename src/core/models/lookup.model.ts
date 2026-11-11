@@ -33,6 +33,31 @@ export const MASTER_KEYS = {
     degradation district and city have had since 2.47.
   */
   tehsil: 'tehsil',
+
+  /*
+    🔴 P1. THE TEHSIL OF ONE CITY — A SEPARATE KEY, NOT A SECOND MEANING FOR
+    THE ONE ABOVE.
+
+    P1 re-parented the address cascade: district parents the CITY, and the city
+    parents the TEHSIL. The authoritative link is `m_mdm_city.TehsilId`, with a
+    build guard asserting a city's tehsil belongs to that city's district.
+
+    ⚠️ IT IS A DISTINCT KEY BECAUSE A DISTRICT ID AND A CITY ID ARE BOTH PLAIN
+    INTS. `@ParentId` carries no type, so a single `tehsil` key handed either
+    one would have to GUESS — and a wrong guess returns a real list for a real
+    id, with a 200 and nothing in any log. A blank dropdown took weeks to spot
+    once; a plausible-but-wrong one would never be spotted at all.
+
+    A city with no tehsil returns `[]`, which the forms already treat as "this
+    place has no tehsil level": the control hides and the address saves without
+    it. Tehsil is optional and stays optional.
+
+    ⚠️ `tehsil` ABOVE IS STILL LIVE and is NOT dead weight — the Google Places
+    address resolver matches a tehsil name within an already-matched district,
+    where no city has been resolved yet, so it is district-parented by nature.
+  */
+  tehsilByCity: 'tehsil-by-city',
+
   city: 'city',
 
   // education
