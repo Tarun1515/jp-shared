@@ -1,0 +1,365 @@
+@use 'sass:meta';
+@use 'variables' as v;
+@use 'mixins' as m;
+
+/*==============================================================================
+  TWO HALVES, AND THE LINE BETWEEN THEM IS NOT COSMETIC
+
+  1. OUR CHROME — the label row, the frame, the placeholder, the status line.
+     Written in the template, so Angular stamps every element with this
+     component's `_ngcontent` attribute and ordinary scoped rules reach it.
+
+  2. LEAFLET'S DOM — panes, tiles, the zoom bar, the attribution, the marker.
+     Created by JavaScript AFTER the template was compiled, so those elements
+     carry NO encapsulation attribute and an ordinary scoped rule can never
+     match them. Leaflet without its stylesheet is not a degraded map; it is a
+     pile of tiles stacked in the top-left corner.
+
+  🔴 SO LEAFLET'S CSS IS LOADED INSIDE `:host ::ng-deep`, AND THAT IS THE WHOLE
+  TRICK. `meta.load-css` inlines the package's own `leaflet.css` at build time —
+  the file from node_modules, never a copy of it — and Sass nests every selector
+  in it under the block. Angular then compiles `:host ::ng-deep .leaflet-pane`
+  to `[_nghost-xyz] .leaflet-pane`: the rules apply to anything inside THIS
+  component's host element, including DOM Angular never saw, and they cannot
+  reach a single element outside it. Nothing is global, nothing leaks into the
+  design system, and nothing had to be copied into this repo to drift.
+
+  ⚠️ WHY NOT THE OTHER THREE WAYS:
+    • A global stylesheet (`styles` in angular.json, or a partial in
+      src/styles/) does not travel over federation — the apps consume this
+      library's SCSS at BUILD time through their own include path, so a
+      stylesheet added here would reach the probe page on :4999 and no app.
+      Component styles ride along with the component's bundle, which is the
+      only path that works for a remote.
+    • `ViewEncapsulation.None` would make every rule here global, which is the
+      leak this whole note is about.
+    • `ViewEncapsulation.ShadowDom` would scope it perfectly and then cut this
+      component off from `.btn`, `.field` and every other design-system class,
+      which are global by design.
+
+  ⚠️ THE `url()`s IN LEAFLET.CSS ARE FINE, AND THAT IS NOT LUCK. Angular's Sass
+  pipeline rebases url() references against the file that declared them, so
+  leaflet's three relative image references resolve inside
+  node_modules/leaflet/dist and are emitted as ordinary build assets. None of
+  them is ever requested: there is no layers control here, and the pin is a
+  <div> rather than Leaflet's default image (see the component).
+==============================================================================*/
+
+:host {
+  display: block;
+}
+
+
+// =============================================================================
+// 1. OUR CHROME
+// =============================================================================
+
+/*
+  ⚠️ The label row carries the Reset button, so it needs `.field__label-row`'s
+  baseline alignment — a 2rem button next to a 13px label looks accidental when
+  they are centred against each other.
+*/
+.map-pick__head {
+  // The button is the taller item; keep it off the label's baseline rhythm.
+  align-items: center;
+
+  /*
+    ⚠️ Reserved whether or not the Reset button is there, so the map does not
+    shift up and down as `readonly` flips or an anchor arrives.
+  */
+  min-height: 2rem;
+
+  /*
+    ⚠️ WRAPS RATHER THAN SQUEEZING. At 375px the label and a nowrap
+    "Reset to address location" cannot share a line; wrapping drops the button
+    onto its own line only on the widths where it has to, which is why there is
+    no breakpoint here.
+  */
+  flex-wrap: wrap;
+  gap: v.$space-2;
+}
+
+/*
+  🔴 `isolation: isolate`, AND IT IS LOAD-BEARING.
+
+  Leaflet paints `.leaflet-top` / `.leaflet-bottom` at z-index 1000. This
+  product's own header sits at --jp-z-header (300) and its modals at
+  --jp-z-modal (1000). Without a stacking context here, this map's zoom buttons
+  would paint straight through a sticky header as the page scrolls past, and
+  would argue with a dialog for the top of the page. One line contains all of
+  Leaflet's z-indexes inside this box, where they are correct relative to each
+  other and irrelevant to everything else.
+
+  ⚠️ `overflow: hidden` BOTH rounds the corners and clips the tile edges. A
+  tile is a 256px image on a transform; without the clip the bottom row of
+  tiles paints over whatever follows the map while a pan is in flight.
+*/
+.map-pick__frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--jp-border);
+  border-radius: var(--jp-radius-md);
+
+  // Shows through until the first tile paints, and wherever tiles never do.
+  background: var(--jp-surface-sunken);
+}
+
+/*
+  Leaflet measures this element and paints inside it.
+
+  ⚠️ IT SETS ONLY width/height — two properties leaflet.css never touches —
+  because this element is also `.leaflet-container`, and the two rules land at
+  equal specificity where source order would decide the winner.
+*/
+.map-pick__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  ⚠️ `pointer-events: none` so this cannot swallow the first click on a map
+  that has just become ready, and absolutely positioned so the frame keeps its
+  height whether or not the map ever loads.
+*/
+.map-pick__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: v.$space-4;
+  text-align: center;
+  font-size: var(--jp-font-size-xs);
+  color: var(--jp-text-muted);
+  pointer-events: none;
+}
+
+/*
+  ⚠️ NO MARGIN, PADDING OR BACKGROUND ON THE BASE RULE. The element is always
+  in the DOM so the live region is never destroyed and recreated (see the
+  template), and an empty one has to take up no room at all — no content means
+  no line box, so spacing is the only thing that could add height. `--shown`
+  puts it back. The same arrangement <ui-address-search> uses, deliberately.
+*/
+.map-pick__status {
+  margin: 0;
+  font-size: var(--jp-font-size-xs);
+  line-height: var(--jp-line-height-snug);
+  color: var(--jp-text-muted);
+
+  &--shown {
+    margin-top: v.$space-1;
+  }
+}
+
+
+// =============================================================================
+// 2. LEAFLET'S DOM
+//
+// Everything below is nested under `:host ::ng-deep`, which is what lets it
+// reach DOM that Angular never stamped — and what stops any of it escaping
+// this component. See the note at the top of this file.
+//
+// 🔴 ORDER MATTERS: leaflet's own stylesheet is loaded FIRST and our overrides
+// follow it, because the two land at equal specificity and the later rule wins.
+// Moving `load-css` below them would silently restore leaflet's own greys.
+// =============================================================================
+
+:host ::ng-deep {
+  @include meta.load-css('leaflet/dist/leaflet.css');
+
+  // ---------------------------------------------------------------------------
+  // THE CONTAINER
+  //
+  // leaflet.css sets `background: #ddd` and a Helvetica stack. There is no true
+  // grey anywhere in this product (see the design direction in
+  // _variables.scss), and a second font stack inside the map would be the only
+  // place in the portal not set in Public Sans.
+  // ---------------------------------------------------------------------------
+  .leaflet-container {
+    @include m.focus-ring;
+
+    background: var(--jp-surface-sunken);
+    font-family: var(--jp-font-family);
+    font-size: var(--jp-font-size-xs);
+    line-height: var(--jp-line-height-snug);
+  }
+
+  .leaflet-container a {
+    color: var(--jp-primary);
+  }
+
+  /*
+    ⚠️ THE ONE LEAFLET RULE THAT SCOPING COSTS US, PUT BACK BY HAND.
+
+    Leaflet adds `.leaflet-dragging` to `document.body` during a drag, and
+    body is an ANCESTOR of this component's host — so
+    `[_nghost-xyz] .leaflet-dragging .leaflet-grab` can never match, and the
+    "grabbing" cursor would be the one thing that stopped working. `:active` on
+    the container and on the marker says the same thing locally.
+  */
+  .leaflet-container.leaflet-grab:active,
+  .leaflet-marker-draggable:active {
+    cursor: grabbing;
+  }
+
+  // ---------------------------------------------------------------------------
+  // THE ATTRIBUTION — THE LICENCE, NOT A CAPTION
+  //
+  // 🔴 NOTHING HERE MAY HIDE IT. Not `display: none`, not a width that clips
+  // it, not a colour that loses it against the tiles. OSM tiles are used on
+  // the condition that they are credited, so this strip is as much a part of
+  // shipping the map as the tiles are. It wraps to two lines at 375px, which
+  // is the correct outcome.
+  // ---------------------------------------------------------------------------
+  .leaflet-control-attribution,
+  .leaflet-touch .leaflet-control-attribution {
+    padding: 0 v.$space-1;
+    background: var(--jp-surface);
+    color: var(--jp-text-muted);
+  }
+
+  // ---------------------------------------------------------------------------
+  // THE ZOOM BAR
+  //
+  // ⚠️ EVERY RULE HERE IS PAIRED WITH ITS `.leaflet-touch` TWIN. Leaflet ships
+  // a second, more specific copy of each of these for touch devices; a single
+  // `.leaflet-bar` override wins on a laptop and loses silently on a phone,
+  // which is the hardest kind of styling bug to notice.
+  //
+  // ⚠️ 2.25rem rather than leaflet's 26px: $rule-row-height-compact is a real
+  // token in this design system, and 26px is below anything a thumb can be
+  // asked to hit. It is not the register's full 44px row, which would spend a
+  // quarter of a 320px map on two buttons that are a convenience — the pin
+  // already starts in the right place.
+  // ---------------------------------------------------------------------------
+  .leaflet-bar,
+  .leaflet-touch .leaflet-bar {
+    border: 1px solid var(--jp-border-strong);
+    border-radius: var(--jp-radius-md);
+    box-shadow: var(--jp-shadow-sm);
+    background-clip: padding-box;
+  }
+
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    @include m.flex-center;
+
+    width: v.$rule-row-height-compact;
+    height: v.$rule-row-height-compact;
+    background: var(--jp-surface);
+    color: var(--jp-text);
+    border-bottom-color: var(--jp-border);
+
+    // ⚠️ The mono face, because these are a `+` and a `−` rather than words,
+    // and the body face sets them at two different optical weights.
+    font-family: var(--jp-font-family-mono);
+    font-size: var(--jp-font-size-lg);
+    font-weight: var(--jp-font-weight-semibold);
+
+    &:hover,
+    &:focus {
+      background: var(--jp-surface-alt);
+      color: var(--jp-text);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // THE PIN
+  //
+  // A <div> icon, not Leaflet's marker image — the component explains why at
+  // length (a hashed asset name breaks Leaflet's runtime image-path detection,
+  // and the symptom is an invisible pin in production only).
+  //
+  // Styled here rather than in the chrome half because Leaflet creates this
+  // element itself, so it carries no encapsulation attribute.
+  //
+  // The geometry has to agree with `iconSize` / `iconAnchor` in the component:
+  // an 18px head from y=0, a 12px point from y=16, so the tip lands on y=28 —
+  // which is the anchor, and therefore the pixel that sits on the coordinate.
+  // ---------------------------------------------------------------------------
+  .map-pick__pin {
+    display: flex;
+    justify-content: center;
+
+    // ⚠️ Explicit: the default `stretch` would be a no-op only for as long as
+    // the head keeps an explicit height, which is not a thing to leave implied.
+    align-items: flex-start;
+
+    // The read view's pin is not draggable, so it must not invite a drag.
+    cursor: default;
+
+    &.leaflet-marker-draggable {
+      cursor: grab;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // THE ADDRESS POINT — a hollow disc, deliberately NOT a second pin.
+  //
+  // It has to be told apart from the pin at a glance, on a printed screenshot,
+  // and with any form of colour vision — so the difference is SHAPE first
+  // (disc versus pin), weight second, and colour last.
+  //
+  // Centred on its coordinate, unlike the pin, which sits on its point. The
+  // 18px box and the [9, 9] iconAnchor in the component are the same two
+  // numbers; they have to agree.
+  // ---------------------------------------------------------------------------
+  .map-pick__anchor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    // It is not interactive and must not pretend to be.
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .map-pick__anchor-dot {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 3px solid var(--jp-text-muted);
+    border-radius: var(--jp-radius-full);
+
+    // Hollow on purpose: the map underneath shows through, which says "this is
+    // a position, not a thing placed here".
+    background: transparent;
+
+    // ⚠️ A ring of surface colour OUTSIDE the border, not a drop shadow: it
+    // keeps the disc legible over dark tiles without implying it floats the
+    // way the pin does.
+    box-shadow: 0 0 0 2px var(--jp-surface);
+  }
+
+  .map-pick__pin-head {
+    position: relative;
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid var(--jp-surface);
+    border-radius: var(--jp-radius-full);
+    background: var(--jp-primary);
+
+    /*
+      ⚠️ The one shadow in this component, and it earns it: rule 2 of the
+      design direction allows elevation for things that genuinely float above
+      the page, and a pin floating over a photograph of a town needs to be
+      separable from whatever colour happens to be under it.
+    */
+    box-shadow: var(--jp-shadow-md);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      width: 0;
+      height: 0;
+      margin-left: -0.3125rem;
+      border-top: 0.75rem solid var(--jp-primary);
+      border-right: 0.3125rem solid transparent;
+      border-left: 0.3125rem solid transparent;
+    }
+  }
+}

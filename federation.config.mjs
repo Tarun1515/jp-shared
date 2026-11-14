@@ -57,5 +57,36 @@ export default withNativeFederation({
     'rxjs/fetch',
     'rxjs/testing',
     'rxjs/webSocket',
+
+    /*
+      🔴 leaflet IS BUNDLED INTO THIS REMOTE, NOT SHARED.
+
+      `shareAll` would otherwise publish it as a shared external, which makes
+      `leaflet` an import-map entry in every HOST's page that resolves back to
+      a bundle here. Three things are wrong with that for this one dependency:
+
+        1. IT CAN ONLY FAIL IN THE APPS. The probe page on :4999 is its own
+           host and always resolves its own import map, so a missing or
+           mis-keyed entry would look perfect here and throw "Unable to resolve
+           specifier 'leaflet'" in jp-school — the exact failure the expose-key
+           note above this exists to prevent, in the one place it is hardest
+           to see.
+
+        2. shareAll sets `singleton: true, strictVersion: true`, which is
+           correct for Angular (two DI graphs is a broken login) and absurd
+           here: the day any app installs a different leaflet, the WHOLE PAGE
+           fails to load over a map library where two copies would be harmless.
+
+        3. Skipping costs nothing, because the component imports leaflet
+           DYNAMICALLY. esbuild emits it as a lazy chunk of the `ui` bundle, so
+           it is downloaded the first time a <ui-map-picker> renders and never
+           on a page without a map. No app needs leaflet in its own
+           node_modules, and none should add it.
+
+      ⚠️ Its CSS does not come this way at all — it is inlined into the
+      component's own stylesheet, scoped to the component. See the long note in
+      ui-map-picker.component.scss.
+    */
+    'leaflet',
   ],
 });

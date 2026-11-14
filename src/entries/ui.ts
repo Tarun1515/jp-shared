@@ -47,6 +47,37 @@ export * from '../ui/ui-datepicker/ui-datepicker.component';
 export * from '../ui/ui-empty-state/ui-empty-state.component';
 export * from '../ui/ui-file-upload/ui-file-upload.component';
 export * from '../ui/ui-input/ui-input.component';
+
+/*
+  The map pin-picker: Leaflet over OpenStreetMap tiles, one draggable pin, and
+  a one-click reset to the geocoded address.
+
+  🔴 NO API KEY REACHES THE BROWSER, which is why it is OSM and not Google.
+  Everything a different tile source would need is in JP_MAP_TILE_PROVIDER —
+  exported below, from HERE and nowhere else.
+
+  ⚠️ ONE BARREL FOR THE TOKEN, DELIBERATELY. An InjectionToken re-exported
+  from two entry points can end up bundled twice, and two tokens with the same
+  description are two different keys: an app would provide one and the
+  component would inject the other, silently keeping the default. The token
+  lives beside the component, and both come out of `jp-shared/ui`.
+
+  ⚠️ IT IS AN ADDITION TO THE MANUAL LATITUDE/LONGITUDE INPUTS, never a
+  replacement — the same rule <ui-address-search> follows for the geography
+  cascade. The hosts keep their number fields; this is the faster way to the
+  same two numbers, and it tolerates values it did not produce.
+*/
+export * from '../ui/ui-map-picker/ui-map-picker.component';
+export * from '../ui/ui-map-picker/map-tile-provider';
+
+/*
+  Great-circle kilometres, for the "your pin is X km from your address"
+  sentence. 🔴 THE SERVER'S `STDistance` IS THE ONE THAT DECIDES ANYTHING —
+  see the long note in map-distance.ts about why the two disagree and why that
+  is fine.
+*/
+export * from '../ui/ui-map-picker/map-distance';
+
 export * from '../ui/ui-modal/ui-modal.component';
 export * from '../ui/ui-multi-select/ui-multi-select.component';
 

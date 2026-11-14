@@ -1,0 +1,109 @@
+<!--
+  🔴 EVERYTHING OUTSIDE THE CANVAS IS OURS; EVERYTHING INSIDE IT IS LEAFLET'S.
+
+  The canvas is handed to Leaflet, which fills it with panes, tiles, controls
+  and the marker — DOM that Angular never sees and therefore never stamps with
+  an encapsulation attribute. That split is why the stylesheet is in two halves;
+  the long note at the top of it explains the consequence.
+
+  ⚠️ NOTHING IS RENDERED INSIDE THE CANVAS, EVER. Leaflet does not clear its
+  container, so a placeholder put in there would stay underneath the map
+  forever. The "loading" note is a SIBLING, painted over the box.
+-->
+<!--
+  ⚠️ `.field` ON THE WRAPPER, like <ui-address-search>'s. It is what puts this
+  control on the same column rhythm and the same label-to-control gap as every
+  other field on the form, rather than having this component invent spacing
+  that is nearly the same.
+-->
+<div class="field map-pick" [class.map-pick--readonly]="readonly()">
+  <!--
+    The design system's own label row, the same one a field with a trailing
+    action uses (_forms.scss), so this control sits on the form's rhythm
+    instead of inventing its own.
+  -->
+  <div class="field__label-row map-pick__head">
+    <!--
+      ⚠️ A <span>, NOT A <label for>. The map is not a form control, and a
+      `for` pointing at a <div> names nothing. The canvas borrows this text
+      through `aria-labelledby`, so the visible label and the accessible name
+      are the same string by construction.
+    -->
+    <span class="field__label" [id]="labelId">{{ label() }}</span>
+
+    <!--
+      🔴 ONE CLICK BACK TO THE ADDRESS. The whole safety net under "drag the
+      pin": a school that drags it somewhere wrong, or a verifier who wants to
+      see where the address actually geocoded to, is one button from the known
+      point. Hidden with no anchor and in the read view — see `showReset`.
+    -->
+    @if (showReset()) {
+      <button
+        type="button"
+        class="btn btn--sm map-pick__reset"
+        (click)="resetToAnchor()"
+      >Reset to address location</button>
+    }
+  </div>
+
+  <!--
+    🔴 `isolation: isolate` LIVES ON THIS WRAPPER, AND IT IS LOAD-BEARING.
+    Leaflet paints its controls at z-index 1000 — above --jp-z-header (300) and
+    level with --jp-z-modal. Without a stacking context here, a map scrolled
+    under the app's sticky header would paint its zoom buttons straight through
+    it. The stylesheet carries the same note next to the rule.
+  -->
+  <div class="map-pick__frame" [style.height.px]="heightPx()">
+    <!--
+      ⚠️ role="group", NOT role="application". The container takes focus (and
+      Leaflet pans it with the arrow keys), so it needs a name — but
+      `application` tells a screen reader to hand almost every key to the page,
+      a promise this control cannot keep. A named group describes what is
+      actually here.
+    -->
+    <div
+      #canvas
+      class="map-pick__canvas"
+      role="group"
+      [attr.aria-labelledby]="labelId"
+      [attr.aria-describedby]="hintId"
+    ></div>
+
+    <!--
+      ⚠️ The box keeps its height whatever happens here, so nothing below the
+      map moves when the tiles arrive — and nothing moves if they never do.
+
+      ⚠️ THE FAILURE SENTENCE IS SPLIT WITH THE STATUS LINE below: this half
+      says what happened, that half says what to do. Both halves in both places
+      is a stutter; see the note in the component.
+    -->
+    @if (!ready() || mapUnavailable()) {
+      <p class="map-pick__placeholder">
+        {{ mapUnavailable() ? 'The map could not be loaded.' : 'Loading the map…' }}
+      </p>
+    }
+  </div>
+
+  <span class="field__helper map-pick__hint" [id]="hintId">{{ hint() }}</span>
+
+  <!--
+    🔴 role="status" + aria-live, AND ALWAYS IN THE DOM.
+
+    This is the only thing that tells a non-visual user that the pin moved, and
+    it is the only feedback after pressing Reset. A live region has to exist
+    BEFORE text is written into it — one created and filled in the same change
+    is routinely never announced — so the element is unconditional and the
+    class decides whether it takes up space.
+
+    ⚠️ NOT STYLED AS AN ERROR, in any of its states. "Your pin is 3.2 km from
+    the address you entered" is a fact that may be perfectly correct — a school
+    whose gate is on another road — and red text mid-registration reads as
+    "you have broken something".
+  -->
+  <p
+    class="map-pick__status"
+    [class.map-pick__status--shown]="status() !== null"
+    role="status"
+    aria-live="polite"
+  >{{ status() }}</p>
+</div>
