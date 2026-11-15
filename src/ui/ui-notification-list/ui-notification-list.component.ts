@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+
+import { appHandlesPath } from '../../core/utils/app-handles-path';
 import { Notification, NotificationService } from '../../core/services/notification.service';
 
 /**
@@ -70,7 +72,14 @@ export class UiNotificationListComponent {
   protected activate(row: Notification): void {
     this.notifications.markRead(row.notificationId);
 
-    if (row.actionUrl) {
+    /*
+      🔴 ONLY IF THIS APP SERVES IT. The shell renders this bell in every app,
+      and the server writes school/teacher paths; in jp-admin none of them is a
+      route, and the `**` catch-all turns the click into a 404 rather than a
+      failed navigation. No destination is better than a wrong one — the row is
+      still marked read above, because the person has seen it.
+    */
+    if (row.actionUrl && appHandlesPath(this.router.config, row.actionUrl)) {
       void this.router.navigateByUrl(row.actionUrl);
     }
   }
