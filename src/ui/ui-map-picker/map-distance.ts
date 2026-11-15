@@ -68,3 +68,93 @@ export function distanceKm(aLat: number, aLng: number, bLat: number, bLng: numbe
   */
   return 2 * EARTH_MEAN_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
+
+/*==============================================================================
+  "~4 km away" — ONE WORDING FOR THE SERVER'S NUMBER (D1)
+
+  ----------------------------------------------------------------------------
+  🔴 THIS FORMATS THE SERVER'S METRES. IT DOES NOT COMPUTE A DISTANCE.
+  ----------------------------------------------------------------------------
+  Everything above this line is the BROWSER's haversine, for the one reassuring
+  sentence `<ui-map-picker>` prints about its own pin. This function is the
+  other half of that rule, and it is here rather than in a feature component so
+  that the two never get confused for each other:
+
+      distanceKm()           computes — browser, sphere, ±0.5%, display only
+      distanceAwayLabel()    formats — takes STDistance's metres off the wire
+
+  It is in this file because this is where the project's distance reasoning
+  already lives, and because a label like this one tends to be re-typed per
+  screen until there are three wordings of the same fact. The job card, the job
+  detail page and whatever asks next all read this.
+
+  ----------------------------------------------------------------------------
+  🔴 NULL IN, NULL OUT — AND THAT IS THE WHOLE RULE OF WHEN THE LABEL APPEARS
+  ----------------------------------------------------------------------------
+  The server sends `distanceMetres: null` whenever EITHER pin is missing — the
+  teacher has not pinned themselves, or the campus has no pin. There is no
+  city-centroid fallback anywhere in the chain, by decision: a town centroid is
+  not where anybody lives, and "~4 km away" measured from one is a sentence the
+  product states as fact and cannot support (041's header argues it in full).
+
+  So "both pins exist" is not a second condition a caller has to remember — it
+  is exactly `distanceMetres !== null`, and returning null here means the
+  template renders nothing. 🔴 Callers must not substitute a 0, a dash or
+  "Distance unknown": a card that says nothing about distance is correct, and a
+  card that says "0 km away" is wrong in the one way that reads as right.
+
+  ----------------------------------------------------------------------------
+  ⚠️ WHOLE KILOMETRES, AND THE "~" IS DOING REAL WORK
+  ----------------------------------------------------------------------------
+  `STDistance` is a STRAIGHT LINE over the ellipsoid. The commute is a road, and
+  a road is routinely half again as long — so "4.2 km" would advertise a
+  precision the number does not have, about a journey it is not measuring.
+  Whole kilometres with a leading "~" says what this is: an estimate of how far
+  away, not a trip length. Somebody deciding whether a job is reachable needs
+  the order of magnitude and nothing finer.
+
+  ⚠️ UNDER A KILOMETRE IS A BOUND, NOT AN ESTIMATE, so it loses the "~" and
+  says "Less than 1 km away". Two reasons: "~0 km away" is what rounding would
+  produce for anything under 500 m, and a teacher pinned at their own school's
+  gate would be told they are nowhere near it. Reporting metres instead
+  ("~300 m away") would be the opposite mistake — a straight-line number given
+  to a precision that implies we know which building.
+==============================================================================*/
+
+/** Below this, the distance is reported as a bound rather than an estimate. */
+const BOUND_BELOW_METRES = 1000;
+
+/**
+ * How far away, in words — or null when there is nothing to say.
+ *
+ * @param metres Straight-line metres from the server, or null/undefined when
+ *   either pin is missing.
+ *
+ * @example
+ * distanceAwayLabel(4218);    // '~4 km away'
+ * distanceAwayLabel(420);     // 'Less than 1 km away'
+ * distanceAwayLabel(null);    // null  — render nothing
+ */
+export function distanceAwayLabel(metres: number | null | undefined): string | null {
+  /*
+    ⚠️ Number.isFinite REJECTS null, undefined, NaN AND Infinity in one test.
+    A `!metres` check would also reject 0, which is a real distance — two pins
+    at the same place — and would be the one case where "no label" is wrong.
+    A negative is impossible from STDistance and is refused anyway: it means
+    something upstream is broken, and the honest response to a number we cannot
+    explain is to say nothing rather than to print it.
+  */
+  if (!Number.isFinite(metres as number) || (metres as number) < 0) return null;
+
+  const m = metres as number;
+
+  if (m < BOUND_BELOW_METRES) return 'Less than 1 km away';
+
+  /*
+    ⚠️ toLocaleString('en-IN') for the thousands grouping, matching how this
+    product already prints rupees. It only ever shows for genuinely distant
+    postings — "~1,800 km away" on a job in another state is useful information
+    and not an error.
+  */
+  return `~${Math.round(m / 1000).toLocaleString('en-IN')} km away`;
+}

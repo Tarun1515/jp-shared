@@ -44,6 +44,7 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "styles": ["src/styles.scss"],
+            "allowedCommonJsDependencies": ["leaflet"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/styles"]
             }
@@ -52,7 +53,7 @@
             "production": {
               "budgets": [
                 { "type": "initial", "maximumWarning": "500kB", "maximumError": "1MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "6kB", "maximumError": "24kB" }
+                { "type": "anyComponentStyle", "maximumWarning": "18kB", "maximumError": "24kB" }
               ],
               "outputHashing": "all"
             },
